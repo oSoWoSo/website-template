@@ -44,7 +44,7 @@ jobs:
               pandoc "$file" -s \
                 --css=style.css \
                 --include-before-body=_site/toggle.html \
-                --metadata title="${GITHUB_REPOSITORY}" \
+                --metadata title="${GITHUB_REPOSITORY##*/}" \
                 -o _site/index.html
             else
               pandoc "$file" -s --css=style.css \
