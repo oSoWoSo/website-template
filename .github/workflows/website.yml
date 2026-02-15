@@ -42,9 +42,9 @@ jobs:
             echo "Processing: $file → $output"
             if [ "$file" = README.md ]; then
               pwd
-              pandoc "$file" -s --css=styles.css --include-after-body=_site/toggle.html -o _site/index.html
+              pandoc "$file" -s --css=_site/styles.css --include-after-body=_site/toggle.html -o _site/index.html
             else
-              pandoc "$file" -s --css=styles.css --include-after-body=toggle.html -o "$output"
+              pandoc "$file" -s --css=_site/styles.css --include-after-body=_site/toggle.html -o "$output"
             fi
           done
 
