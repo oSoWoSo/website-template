@@ -41,7 +41,8 @@ jobs:
             output="_site/${file%.md}.html"
             echo "Processing: $file → $output"
             if [ "$file" = README.md ]; then
-              pandoc "$file" -s --css=styles.css --include-after-body=toggle.html -o _site/index.html
+              pwd
+              pandoc "$file" -s --css=styles.css --include-after-body=_site/toggle.html -o _site/index.html
             else
               pandoc "$file" -s --css=styles.css --include-after-body=toggle.html -o "$output"
             fi
