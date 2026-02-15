@@ -43,7 +43,6 @@ jobs:
             if [ "$file" = README.md ]; then
               pwd
               pandoc "$file" -s --css=styles.css \
-                --include-in-header=_site/header.html \
                 --include-before-body=_site/toggle.html \
                 -o _site/index.html
             else
