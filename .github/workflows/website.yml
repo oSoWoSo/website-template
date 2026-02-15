@@ -41,14 +41,16 @@ jobs:
             output="_site/${file%.md}.html"
             echo "Processing: $file → $output"
             if [ "$file" = README.md ]; then
-              pwd
-              pandoc "$file" -s --css=style.css \
+              pandoc "$file" -s \
+                --css=style.css \
                 --include-before-body=_site/toggle.html \
+                --metadata title="${GITHUB_REPOSITORY}" \
                 -o _site/index.html
             else
               pandoc "$file" -s --css=style.css \
                 --include-in-header=_site/header.html \
                 --include-before-body=_site/toggle.html \
+                --metadata title="${file%.md}" \
                 -o "$output"
             fi
           done
