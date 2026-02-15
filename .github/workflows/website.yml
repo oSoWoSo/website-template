@@ -1,0 +1,73 @@
+name: Build GitHub Pages from md files
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Create _site directory
+        run: mkdir -p _site
+
+      - name: Create theme toggle HTML
+        run: |
+          cat > /tmp/toggle.html << 'EOF'
+          <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+          <script>
+          function toggleTheme(){
+            const html=document.documentElement;
+            const current=html.getAttribute("data-theme")||"dark";
+            const next=current==="dark"?"light":"dark";
+            html.setAttribute("data-theme",next);
+            localStorage.setItem("theme",next)
+          }
+          (function(){
+            const saved=localStorage.getItem("theme")||"dark";
+            document.documentElement.setAttribute("data-theme",saved)
+          })();
+          </script>
+          EOF
+
+      - name: Convert Markdown to HTML
+        run: |
+          for file in *.md; do
+            [ -f "$file" ] || continue
+            output="_site/${file%.md}.html"
+            echo "Processing: $file → $output"
+            if [ "$file" = README.md ]; then
+              pandoc "$file" -s --css=styles.css --include-after-body=/tmp/toggle.html -o _site/index.html
+            else
+              pandoc "$file" -s --css=styles.css --include-after-body=/tmp/toggle.html -o "$output"
+            fi
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: '_site/'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
