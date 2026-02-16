@@ -43,8 +43,8 @@
   --primary-color: var(--color3);
   --primary-dark: #5fa77f;
   --secondary-color: #000000;
-  --text-color: var(--color5);
-  --text-light: var(--color4);
+  --text-color: #CCCCCC;
+  --text-light: #ffffff;
   --bg-color: #000000;
   --bg-light: #111111;
   --border-color: #87ff8755;
