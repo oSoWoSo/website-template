@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - '*.md'
+      - '_site/*.css'
+      - '_site/*.js'
       - .github/workflows/website.yml
   workflow_dispatch:
 
