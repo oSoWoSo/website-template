@@ -1,63 +1,47 @@
-/**
-* Void Artwork - Merged CSS
-* 
-* Combines osowoso.org terminal theme with modern gallery design
-* 
-* Authors: 
-* - Dave Eddy <dave@daveeddy.com> (original terminal theme)
-* - Claude (gallery & modern components)
-* 
-* License: MIT / CC-BY-4.0
-*/
-
 /* ========================================
  CSS Variables & Theme Configuration
  ======================================== */
 
-/* Terminal theme colors (from osowoso.org) */
+/* Theme colors */
 :root {
-  /* Terminal colors */
-  --color1: #5fffff;
-  --color2: #ff87af;
-  --color3: #87ff87;
-  --color4: #666;
-  --color5: #ffd7af;
-  
-  /* Gallery theme - Light mode */
-  --primary-color: #478061;
-  --primary-dark: #2d5a3d;
-  --secondary-color: #282E3A;
-  --text-color: #333;
-  --text-light: #666;
-  --bg-color: #ffffff;
-  --bg-light: #f5f5f5;
-  --border-color: #e0e0e0;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --green: #2d5a3d;
+  --green-light: #478061;
+  --green-lighter: #87ff87;
+  --yellowish: : #C2FF00;
+  --silver: #CCCCCC;
+  --white: #FFFFFF;
+  --black: #000000;
+  --gray: #282E3A;
+  --gray2: #222222;
+  --gray-dark: #111111;
+
+/* Dark Theme (default) */
+  --link-color: var(--yellowish);
+  --accent-color: var(--green);
+  --secondary-color: var(--gray);
+  --text-color: var(--silver);
+  --text-light: var(--white);
+  --bg-color: var(--black);
+  --bg-light: var(--gray-dark);
+  --border-color: var(--green-lighter);
+  --shadow: 0 2px 8px rgba(135, 255, 135, 0.1);
+  --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2);
   --transition: all 0.3s ease;
 }
 
-/* Dark Theme (default) */
-[data-theme="dark"] {
-  /* Use terminal colors for dark theme */
-  --primary-color: var(--color3);
-  --primary-dark: #5fa77f;
-  --secondary-color: #000000;
-  --text-color: #CCCCCC;
-  --text-light: #ffffff;
-  --bg-color: #000000;
-  --bg-light: #111111;
-  --border-color: #87ff8755;
-  --shadow: 0 2px 8px rgba(135, 255, 135, 0.1);
-  --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2);
-  
-  --link-color: var(--color1);
-  --accent-color: var(--color2);
-}
-
+/* Light theme */
 [data-theme="light"] {
-  --link-color: var(--primary-color);
-  --accent-color: var(--primary-dark);
+  --link-color: var(--green);
+  --accent-color: var(--yellowish);
+  --secondary-color: var(--gray);
+  --text-color: var(--black);
+  --text-light: var(--gray2);
+  --bg-color: var(--silver);
+  --bg-light: var(--white);
+  --border-color: var(--silver);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s ease;
 }
 
 /* ========================================
@@ -69,9 +53,6 @@
   box-sizing: border-box;
 }
 
-ul {
-  list-style-type: none;
-}
 
 body {
   /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; */
@@ -95,30 +76,23 @@ b, strong, h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.5em;
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.75rem; }
-h3 { font-size: 1.5rem; }
-
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3 {
-  color: var(--color3);
-}
-
 a, a:visited {
-  color: var(--link-color, var(--primary-color));
+  color: var(--link-color, var(--green-light));
   text-decoration: none;
   transition: var(--transition);
 }
 
 a:hover {
-  color: var(--accent-color, var(--primary-dark));
+  color: var(--accent-color, var(--green));
   text-decoration: underline;
 }
 
-p {
-  margin-bottom: 1em;
-  line-height: 1.8;
+blockquote {
+  border-left: 4px solid var(--green-light);
+  padding-left: 20px;
+  margin: 1em 0;
+  color: var(--text-light);
+  font-style: italic;
 }
 
 code {
@@ -129,34 +103,15 @@ code {
   font-size: 0.9em;
 }
 
-pre {
-  background-color: var(--bg-light);
-  padding: 15px;
-  border-radius: 5px;
-  overflow-x: auto;
-  margin: 1em 0;
-}
+h1 { font-size: 2rem; font-weight: bold; color: var(--text-color); }
+h2 { font-size: 1.75rem; font-weight: bold; }
+h3 { font-size: 1.5rem; font-weight: bold; }
 
-[data-theme="dark"] pre {
-  background-color: #111;
-  border: 1px solid var(--color3);
-}
-
-pre code {
-  background-color: transparent;
-  padding: 0;
-}
-
-blockquote {
-  border-left: 4px solid var(--primary-color);
-  padding-left: 20px;
-  margin: 1em 0;
-  color: var(--text-light);
-  font-style: italic;
-}
-
-[data-theme="dark"] blockquote {
-  border-left-color: var(--color3);
+hr {
+  border-top: 1px solid var(--border-color);
+  border-top-color: var(--border-color);
+  border: none;
+  margin: 2em 0;
 }
 
 img {
@@ -166,14 +121,27 @@ img {
   margin: 1em 0;
 }
 
-ul, ol {
-  margin-left: 2em;
-  margin-bottom: 1em;
-  list-style: inherit;
-}
-
 li {
   margin-bottom: 0.5em;
+}
+
+p {
+  margin-bottom: 1em;
+  line-height: 1.8;
+}
+
+pre {
+  background-color: var(--bg-light);
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 1em 0;
+  border: 1px solid var(--border-color);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
 }
 
 table {
@@ -193,23 +161,14 @@ th {
   font-weight: bold;
 }
 
-[data-theme="dark"] th {
-  background-color: #111;
-  color: var(--color3);
+ul {
+  list-style-type: none;
 }
 
-[data-theme="dark"] td {
-  border-bottom-color: #87ff8755;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid var(--border-color);
-  margin: 2em 0;
-}
-
-[data-theme="dark"] hr {
-  border-top-color: #87ff8755;
+ul, ol {
+  margin-left: 2em;
+  margin-bottom: 1em;
+  list-style: inherit;
 }
 
 /* Theme toggle button */
@@ -217,7 +176,7 @@ hr {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--primary-color);
+  background: var(--green-light);
   color: white;
   border: none;
   padding: 10px 15px;
@@ -229,20 +188,15 @@ hr {
 }
 
 .theme-toggle:hover {
-  background: var(--primary-dark);
-}
-
-[data-theme="dark"] .theme-toggle {
-  background: var(--color3);
-  color: #000;
+  background: var(--green);
 }
 
 @media (max-width: 768px) {
   body {
-	  padding: 10px;
-	  font-size: 13px;
+    padding: 10px;
+    font-size: 13px;
   }
-  
+
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.3rem; }
   h3 { font-size: 1.1rem; }
