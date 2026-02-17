@@ -18,6 +18,7 @@
   --white: #FFFFFF;
   --black: #000000;
   --gray: #282E3A;
+  --gray-light: #E4E2E2;
   --gray2: #222222;
   --gray-dark: #111111;
   --gold: #FCC11A;
@@ -31,7 +32,8 @@
   --text-light: var(--white); /* Light text color */
   --bg-color: var(--black); /* Background color for dark theme */
   --bg-light: var(--gray); /* Light background */
-  --border-color: var(--green-lighter); /* Border color */
+  --border-color: var(--gray); /* Border color */
+  --switch-background: var(--white);
   --shadow: 0 2px 8px rgba(135, 255, 135, 0.1); /* Shadow effect */
   --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2); /* Larger shadow effect */
   --transition: all 0.3s ease; /* Transition effects */
@@ -45,12 +47,29 @@
   --text-color: var(--black); /* Main text color in light theme */
   --text-light: var(--gray2); /* Light text color in light theme */
   --bg-color: var(--white); /* Background color for light theme */
-  --bg-light: var(--silver); /* Light background */
+  --bg-light: var(--gray-light); /* Light background */
   --border-color: var(--silver); /* Border color in light theme */
+  --switch-background: var(--black);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Light theme shadow */
   --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15); /* Larger shadow effect */
-  --transition: all 0.3s ease; /* Transition effects */
 }
+
+h1, h2, h3 { font-weight: bold; }
+
+h1 { font-size: 2.3rem; }
+h2 { font-size: 2.1rem; }
+h3 { font-size: 1.9rem; }
+h4 { font-size: 1.7rem; }
+h5 { font-size: 1.5rem; }
+h6 { font-size: 1.3rem; }
+
+h1 { color: var(--green); }
+h2 { color: #8bd5ca; }
+h3 { color: #91d7e3; }
+h4 { color: #7dc4e4; }
+h5 { color: #8aadf4; }
+h6 { color: #b7bdf8; }
+
 
 /* ========================================
    Reset & Base Styles
@@ -86,8 +105,8 @@ b, strong {
 }
 
 a, a:visited {
-  color: var(--link-color, var(--green-light)); /* Link color */
-  text-decoration: none; /* Remove underline from links */
+  color: var(--link-color, var(--green)); /* Link color */
+  text-decoration: underline; /* Remove underline from links */
   transition: var(--transition); /* Smooth color transition */
 }
 
@@ -97,7 +116,7 @@ a:hover {
 }
 
 blockquote {
-  border-left: 4px solid var(--green-light); /* Left border for blockquote */
+  border-left: 4px solid var(--green); /* Left border for blockquote */
   padding-left: 20px; /* Padding inside blockquote */
   margin: 1em 0; /* Vertical margins for blockquote */
   color: var(--text-light); /* Text color for blockquote */
@@ -110,16 +129,6 @@ code {
   border-radius: 3px; /* Rounded corners for inline code */
   font-family: "Courier New", monospace; /* Font for inline code */
   font-size: 0.9em; /* Smaller font size for inline code */
-}
-
-h1 { font-size: 2rem; font-weight: bold; color: var(--green-tea); } /* Main heading styles */
-h2 { font-size: 1.75rem; font-weight: bold; color: var(--green-slate); } /* Subheading styles */
-h3 { font-size: 1.5rem; font-weight: bold; color: var(--green-dark); } /* Tertiary heading styles */
-
-[data-theme="light"] {
-  h1 { font-size: 2rem; font-weight: bold; color: var(--green-dark); } /* Light theme h1 */
-  h2 { font-size: 1.75rem; font-weight: bold; color: var(--green-slate); } /* Light theme h2 */
-  h3 { font-size: 1.5rem; font-weight: bold; color: var(--green-tea); } /* Light theme h3 */
 }
 
 hr {
@@ -165,15 +174,15 @@ table {
   margin: 1em 0; /* Vertical margins for tables */
 }
 
+th {
+  background-color: var(--bg-light); /* Background for header cells */
+  font-weight: bold; /* Bold font for header cells */
+}
+
 th, td {
   padding: 10px; /* Padding for table cells */
   text-align: left; /* Align text to the left */
   border-bottom: 1px solid var(--border-color); /* Bottom border for cells */
-}
-
-th {
-  background-color: var(--bg-light); /* Background for header cells */
-  font-weight: bold; /* Bold font for header cells */
 }
 
 ul {
@@ -191,7 +200,7 @@ ul, ol {
   position: fixed; /* Fixed position for the toggle button */
   top: 20px; /* Distance from the top */
   right: 20px; /* Distance from the right */
-  background: var(--green-light); /* Button background color */
+  background: var(--switch-background); /* Button background color */
   color: var(--gold); /* Button text color */
   border: none; /* No border for the button */
   padding: 10px 15px; /* Padding for the button */
