@@ -33,6 +33,10 @@ if command -v gum -v >/dev/null; then
 		gum style --border rounded --border-foreground "#fdde13" --padding "0 1" "$@"
 	}
 
+	ask() {
+		gum confirm "$@"
+	}
+
 	_header() {
 		local text green red yellow
 		text="${1}"
@@ -79,6 +83,16 @@ else
 		echo -e "${YELLOW}${1}${NC}"
 	}
 
+	ask() {
+		_y "Press Enter to continue
+anything else for Quit..."
+		echo "$1"
+		read -n 1 -s key
+		if [[ ! $key == '' ]]; then
+			exit 1
+		fi
+	}
+
 	_header() {
 		echo -e "\n${RED}${1}${NC}\n"
 	}
@@ -91,9 +105,12 @@ export -f _r _re _g _b _y
 
 # Target: build
 target_build() { ## Builds the website needs: title argument!
-	title="$1"
-	if [ -z "$title" ]; then
-		_re "No website title provided!"
+	if [ -z "$1" ]; then
+		_r "No website title provided!
+Using generated one!"
+		title=$(basename $(pwd))
+	else
+		title="$1"
 	fi
 	_g "Creating $title"
 #
@@ -131,8 +148,7 @@ target_build() { ## Builds the website needs: title argument!
 			fi
 		done
 	else
-		echo "ERROR: Not .md files found!"
-		exit 1
+		_re "ERROR: Not .md files found!"
 	fi
 	_g "Finished"
 }
@@ -145,13 +161,12 @@ target_help() { ## Show this help message
 	echo ""
 	echo "Available targets:"
 	echo ""
-	awk 'BEGIN {FS = "## "}
-         /^target_[a-zA-Z_-]+\(\).*## / {
-             sub(/target_/, "", $1)
-             sub(/\(\) \{/, "", $1)
-             gsub(/^[ \t]+/, "", $1)
-             printf "  \033[36m%-15s\033[0m %s\n", $1, $2
-         }' "$0" | sort
+	awk 'BEGIN {FS = "## "} /^target_[a-zA-Z_-]+\(\).*## / {
+		sub(/target_/, "", $1)
+		sub(/\(\) \{/, "", $1)
+		gsub(/^[ \t]+/, "", $1)
+		printf "  \033[36m%-15s\033[0m %s\n", $1, $2
+	}' "$0" | sort
 	echo ""
 }
 
@@ -159,7 +174,7 @@ target_help() { ## Show this help message
 target_serve() { ## Serve site locally out of _site folder
 	if [ ! -f _site/index.html ]; then
 		_r "Site not built!"
-		gum confirm 'Build first?' && target_build "$@" || _re "Exiting"
+		ask 'Build first?' && target_build "$@" || _re "Exiting"
 	fi
 
 	_g 'Press Ctrl+C to stop'
