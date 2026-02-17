@@ -7,22 +7,28 @@
   --green: #2d5a3d;
   --green-light: #478061;
   --green-lighter: #87ff87;
-  --yellowish: : #C2FF00;
+  --gren-dark: #295340;
+  --green-slate: #478061;
+  --green-tea: #62B086;
+  --yellowish: #C2FF00;
+  --lime: #AFFF00;  
   --silver: #CCCCCC;
   --white: #FFFFFF;
   --black: #000000;
   --gray: #282E3A;
   --gray2: #222222;
   --gray-dark: #111111;
+  --gold: #FCC11A;
+  --test: #FF0000;
 
 /* Dark Theme (default) */
   --link-color: var(--yellowish);
   --accent-color: var(--green);
-  --secondary-color: var(--gray);
+  --secondary-color: var(--test); /* Nothing using this */
   --text-color: var(--silver);
   --text-light: var(--white);
   --bg-color: var(--black);
-  --bg-light: var(--gray-dark);
+  --bg-light: var(--gray);
   --border-color: var(--green-lighter);
   --shadow: 0 2px 8px rgba(135, 255, 135, 0.1);
   --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2);
@@ -33,11 +39,11 @@
 [data-theme="light"] {
   --link-color: var(--green);
   --accent-color: var(--yellowish);
-  --secondary-color: var(--gray);
+  --secondary-color: var(--test); /* var(--gray); Nothing using this */
   --text-color: var(--black);
   --text-light: var(--gray2);
-  --bg-color: var(--silver);
-  --bg-light: var(--white);
+  --bg-color: var(--white);
+  --bg-light: var(--silver);
   --border-color: var(--silver);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -52,7 +58,6 @@
   padding: 0;
   box-sizing: border-box;
 }
-
 
 body {
   /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; */
@@ -71,9 +76,12 @@ body {
 
 b, strong, h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
-  color: var(--text-color);
   margin-top: 1.5em;
   margin-bottom: 0.5em;
+}
+
+b, strong {
+  color: var(--text-light);
 }
 
 a, a:visited {
@@ -103,9 +111,15 @@ code {
   font-size: 0.9em;
 }
 
-h1 { font-size: 2rem; font-weight: bold; color: var(--text-color); }
-h2 { font-size: 1.75rem; font-weight: bold; }
-h3 { font-size: 1.5rem; font-weight: bold; }
+h1 { font-size: 2rem; font-weight: bold; color: var(--green-tea); }
+h2 { font-size: 1.75rem; font-weight: bold; color: var(--green-slate); }
+h3 { font-size: 1.5rem; font-weight: bold; color: var(--green-dark); }
+
+[data-theme="light"] {
+  h1 { font-size: 2rem; font-weight: bold; color: var(--green-dark); }
+  h2 { font-size: 1.75rem; font-weight: bold; color: var(--green-slate); }
+  h3 { font-size: 1.5rem; font-weight: bold; color: var(--green-tea); }
+}
 
 hr {
   border-top: 1px solid var(--border-color);
@@ -177,7 +191,7 @@ ul, ol {
   top: 20px;
   right: 20px;
   background: var(--green-light);
-  color: white;
+  color: var(--gold);
   border: none;
   padding: 10px 15px;
   border-radius: 5px;
