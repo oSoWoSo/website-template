@@ -103,6 +103,63 @@ anything else for Quit..."
 fi
 export -f _r _re _g _b _y
 
+# Detect repository URL and platform from git remote origin
+_detect_repo() {
+	if ! git rev-parse --git-dir >/dev/null 2>&1; then
+		_r "Not a git repository — repo buttons will be disabled"
+		REPO_URL=""
+		REPO_PLATFORM=""
+		REPO_ZIP_URL=""
+		REPO_RELEASE_URL=""
+		return
+	fi
+
+	local raw
+	raw=$(git remote get-url origin 2>/dev/null)
+
+	if [ -z "$raw" ]; then
+		_r "No git remote 'origin' found — repo buttons will be disabled"
+		REPO_URL=""
+		REPO_PLATFORM=""
+		REPO_ZIP_URL=""
+		REPO_RELEASE_URL=""
+		return
+	fi
+
+	# Normalize SSH → HTTPS  (git@github.com:user/repo.git → https://github.com/user/repo)
+	# Handles: git@host:user/repo.git  and  https://host/user/repo.git
+	local https_url
+	if [[ "$raw" =~ ^git@ ]]; then
+		https_url=$(echo "$raw" | sed 's|git@\(.*\):\(.*\)\.git|https://\1/\2|; s|git@\(.*\):\(.*\)|https://\1/\2|')
+	else
+		https_url="${raw%.git}"
+	fi
+
+	# Detect platform
+	if [[ "$https_url" =~ github\.com ]]; then
+		REPO_PLATFORM="github"
+		REPO_URL="$https_url"
+		REPO_ZIP_URL="${https_url}/archive/refs/heads/main.zip"
+		REPO_RELEASE_URL="${https_url}/releases/latest"
+	elif [[ "$https_url" =~ gitlab\.com ]]; then
+		REPO_PLATFORM="gitlab"
+		REPO_URL="$https_url"
+		# GitLab: project path needed for archive URL
+		local proj_path
+		proj_path=$(echo "$https_url" | sed 's|https://gitlab\.com/||')
+		REPO_ZIP_URL="https://gitlab.com/${proj_path}/-/archive/main/${proj_path##*/}-main.zip"
+		REPO_RELEASE_URL="${https_url}/-/releases"
+	else
+		# Generic fallback — just show source link
+		REPO_PLATFORM="other"
+		REPO_URL="$https_url"
+		REPO_ZIP_URL=""
+		REPO_RELEASE_URL=""
+	fi
+
+	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
+}
+
 add_validation() {
 	echo '
 <p>
@@ -115,17 +172,39 @@ add_validation() {
 ' >> "$output"
 }
 
-# Generuje nav snippet pro danou stránku s active třídou
+# Build nav snippet for a given page with active class
+# Injects: oSoWoSo | Home | [Download Release] [Download ZIP] [Source] | other pages...
 _build_nav() {
 	local current="$1"
 	local nav_file="$2"
 
 	echo '<nav><ul>' > "$nav_file"
 
+	# oSoWoSo button — always first
+	echo '  <li><a href="https://osowoso.org">oSoWoSo</a></li>' >> "$nav_file"
+
+	# Home button
 	local home_active=""
 	[ "$current" = "index" ] && home_active=' class="active"'
 	echo "  <li><a href=\"index.html\"${home_active}>Home</a></li>" >> "$nav_file"
 
+	# Repo buttons (only when URLs are available)
+	if [ -n "$REPO_RELEASE_URL" ]; then
+		echo "  <li><a href=\"${REPO_RELEASE_URL}\">⬇ Latest Release</a></li>" >> "$nav_file"
+	fi
+	if [ -n "$REPO_ZIP_URL" ]; then
+		echo "  <li><a href=\"${REPO_ZIP_URL}\">📦 Download ZIP</a></li>" >> "$nav_file"
+	fi
+	if [ -n "$REPO_URL" ]; then
+		case "$REPO_PLATFORM" in
+			github) local src_label="GitHub" ;;
+			gitlab) local src_label="GitLab" ;;
+			*)      local src_label="Source" ;;
+		esac
+		echo "  <li><a href=\"${REPO_URL}\">🔗 ${src_label}</a></li>" >> "$nav_file"
+	fi
+
+	# Other .md pages
 	for md in *.md; do
 		[ -f "$md" ] || continue
 		[ "$md" = "README.md" ] && continue
@@ -140,6 +219,8 @@ _build_nav() {
 
 # Target: build
 target_build() { ## Builds the website, optional: title argument
+	_detect_repo
+
 	if [ -z "$1" ]; then
 		_r "No website title provided
    using generated one!"
