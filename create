@@ -190,19 +190,16 @@ _build_nav() {
 
 	# Repo buttons (only when URLs are available)
 	if [ -n "$REPO_RELEASE_URL" ]; then
-		echo "  <li><a href=\"${REPO_RELEASE_URL}\">⬇ Latest Release</a></li>" >> "$nav_file"
+		echo "  <li><a href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
 	fi
 	if [ -n "$REPO_ZIP_URL" ]; then
-		echo "  <li><a href=\"${REPO_ZIP_URL}\">📦 Download ZIP</a></li>" >> "$nav_file"
+		echo "  <li><a href=\"${REPO_ZIP_URL}\">📦repo zip</a></li>" >> "$nav_file"
 	fi
 	if [ -n "$REPO_URL" ]; then
-		case "$REPO_PLATFORM" in
-			github) local src_label="GitHub" ;;
-			gitlab) local src_label="GitLab" ;;
-			*)      local src_label="Source" ;;
-		esac
-		echo "  <li><a href=\"${REPO_URL}\">🔗 ${src_label}</a></li>" >> "$nav_file"
+		echo "  <li><a href=\"${REPO_URL}\">🔗git</a></li>" >> "$nav_file"
 	fi
+
+	echo "  <li>⏭️</a></li>" >> "$nav_file"
 
 	# Other .md pages
 	for md in *.md; do
