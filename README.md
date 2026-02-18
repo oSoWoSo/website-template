@@ -1,3 +1,26 @@
+# Website template
+To quickly create website with our design  
+(Which you can easily change to your own)  
+From any md file in repository
+
+Look at [website](https://osowoso.github.io/website-template/)
+
+# How to
+- Copy all files from template branch to your repository
+- (pandoc needed) run `./create build`
+- (optionaly) (python3 needed) You can quickly test in browser with `./create serve`
+- Enable pages on GitHub or elsewhere
+- Create pages from branch directory docs/
+- Action should automaticaly build your new site
+
+# What does
+- Create html files for any md file in repository
+- If is only README.md file, It will create index.html from it
+- If there are more md files it will create menu structure for all md files
+- Will create dark/light theme switcher
+
+Live [preview]()
+
 ---
 layout: default
 ---
@@ -101,6 +124,18 @@ end
 
 ![](https://avatars.githubusercontent.com/u/82756042?s=400&u=2f72a4c44a585158e40c7f4f1dcc674a25b3d51e&v=4)
 
+### Spoiler
+
+# 😉 click for open PREVIEW spoiler 🔽
+<p>
+<details>
+  <summary>gumák preview (SVG)</summary>
+
+![gumák](https://raw.githubusercontent.com/oSoWoSo/gumak/refs/heads/main/DOCS/gumak.svg)
+</details>
+</p>
+
+# 😉 click for open PREVIEW spoiler 🔼
 
 ### Definition lists can be used with HTML syntax.
 
