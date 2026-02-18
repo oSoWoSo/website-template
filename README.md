@@ -129,7 +129,7 @@ end
 <details>
   <summary>gumák preview (SVG)</summary>
 
-![gumák](https://raw.githubusercontent.com/oSoWoSo/gumak/refs/heads/main/DOCS/gumak.svg)
+![gumák](https://raw.githubusercontent.com/oSoWoSo/gumak/refs/heads/main/docs/gumak.svg)
 </details>
 </p>
 
