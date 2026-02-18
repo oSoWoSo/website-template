@@ -384,7 +384,7 @@ ul, ol {
 
 /* Theme toggle button */
 .theme-toggle {
-  position: fixed; /* Fixed position for the toggle button */
+  position: absolue;
   top: 20px; /* Distance from the top */
   right: 20px; /* Distance from the right */
   background: var(--switch-background); /* Button background color */
