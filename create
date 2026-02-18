@@ -158,6 +158,56 @@ _detect_repo() {
 	fi
 
 	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
+
+	# Check if any release exists via API
+	_check_release
+}
+
+# Query platform API to detect if at least one release exists
+_check_release() {
+	REPO_HAS_RELEASE=0
+
+	if [ -z "$REPO_URL" ]; then
+		return
+	fi
+
+	local http_code
+
+	case "$REPO_PLATFORM" in
+		github)
+			# Extract owner/repo from URL
+			local slug
+			slug=$(echo "$REPO_URL" | sed 's|https://github\.com/||')
+			http_code=$(curl -sf -o /dev/null -w "%{http_code}" \
+				-H "Accept: application/vnd.github+json" \
+				"https://api.github.com/repos/${slug}/releases/latest" 2>/dev/null)
+			# 200 = release exists, 404 = no releases
+			[ "$http_code" = "200" ] && REPO_HAS_RELEASE=1
+			;;
+		gitlab)
+			local slug
+			slug=$(echo "$REPO_URL" | sed 's|https://gitlab\.com/||' | sed 's|/|%2F|g')
+			http_code=$(curl -sf -o /dev/null -w "%{http_code}" \
+				"https://gitlab.com/api/v4/projects/${slug}/releases?per_page=1" 2>/dev/null)
+			# Returns 200 with [] if no releases, or 200 with data if releases exist
+			if [ "$http_code" = "200" ]; then
+				local body
+				body=$(curl -sf \
+					"https://gitlab.com/api/v4/projects/${slug}/releases?per_page=1" 2>/dev/null)
+				[ "$body" != "[]" ] && REPO_HAS_RELEASE=1
+			fi
+			;;
+		*)
+			# Unknown platform — assume no release
+			REPO_HAS_RELEASE=0
+			;;
+	esac
+
+	if [ "$REPO_HAS_RELEASE" = "1" ]; then
+		_g "Release found"
+	else
+		_y "No release found — release button will be shown as strikethrough"
+	fi
 }
 
 add_validation() {
@@ -190,7 +240,11 @@ _build_nav() {
 
 	# Repo buttons (only when URLs are available)
 	if [ -n "$REPO_RELEASE_URL" ]; then
+		if [ "${REPO_HAS_RELEASE:-0}" = "1" ]; then
 		echo "  <li><a href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
+		else
+			echo "  <li><a class=\"no-release\" href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
+		fi
 	fi
 	if [ -n "$REPO_ZIP_URL" ]; then
 		echo "  <li><a href=\"${REPO_ZIP_URL}\">📦repo zip</a></li>" >> "$nav_file"
