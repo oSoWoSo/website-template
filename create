@@ -152,11 +152,7 @@ target_build() { ## Builds the website, optional: title argument
 		cp docs/CNAME src/
 	fi
 	rm -rf docs && mkdir -p docs
-	cp src/*.js docs/
-	cp src/*.css docs/
-	cp src/*.ico docs/
-	cp src/*.jpg docs/
-	cp src/CNAME docs/ 2>/dev/null || true
+	cp src/* docs/
 
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
@@ -211,6 +207,7 @@ target_build() { ## Builds the website, optional: title argument
 		_re "ERROR: No .md files found!"
 	fi
 
+	rm -rf docs/toggle.html docs/toc.html
 	_g "Finished"
 }
 
