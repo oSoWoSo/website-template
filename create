@@ -103,53 +103,110 @@ anything else for Quit..."
 fi
 export -f _r _re _g _b _y
 
+add_validation() {
+	echo '
+<p>
+    <a href="https://jigsaw.w3.org/css-validator/check/referer">
+        <img style="border:0;width:88px;height:31px"
+            src="https://jigsaw.w3.org/css-validator/images/vcss-blue"
+            alt="Ověřit CSS!" />
+    </a>
+</p>
+' >> "$output"
+}
+
+# Generuje nav snippet pro danou stránku s active třídou
+_build_nav() {
+	local current="$1"
+	local nav_file="$2"
+
+	echo '<nav><ul>' > "$nav_file"
+
+	local home_active=""
+	[ "$current" = "index" ] && home_active=' class="active"'
+	echo "  <li><a href=\"index.html\"${home_active}>Home</a></li>" >> "$nav_file"
+
+	for md in *.md; do
+		[ -f "$md" ] || continue
+		[ "$md" = "README.md" ] && continue
+		local name="${md%.md}"
+		local active=""
+		[ "$name" = "$current" ] && active=' class="active"'
+		echo "  <li><a href=\"${name}.html\"${active}>${name}</a></li>" >> "$nav_file"
+	done
+
+	echo '</ul></nav>' >> "$nav_file"
+}
+
 # Target: build
-target_build() { ## Builds the website needs: title argument!
+target_build() { ## Builds the website, optional: title argument
 	if [ -z "$1" ]; then
-		_r "No website title provided!
-Using generated one!"
-		title=$(basename $(pwd))
+		_r "No website title provided
+   using generated one!"
+		title=$(basename "$(pwd)")
 	else
 		title="$1"
 	fi
-	_g "Creating $title"
-#
-#./make-html-grub
-#./make-html-hires
-#./make-html-lowres
-#./make-html-logos
-#./make-html-index-rest
+	_g "Creating: $title"
+	rm -rf docs && mkdir -p docs
+	cp src/*.js docs/
+	cp src/*.css docs/
+	cp src/*.ico docs/
+	cp src/*.jpg docs/
+
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
 			[ -f "$file" ] || continue
+			local nav_file="docs/_nav.html"
+			_build_nav "index" "$nav_file"
 			echo "Processing: $file → index.html"
+			# single file
 			pandoc "$file" -f gfm -s \
-			 --css=style.css \
-			 --include-before-body=_site/toggle.html \
-			 --metadata title="$title" \
-			 -o _site/index.html
+				--css=style.css \
+				--toc \
+				--toc-depth=3 \
+				--include-before-body=src/toggle.html \
+				--include-before-body=src/toc.html \
+				--include-before-body="$nav_file" \
+				--metadata title="$title" \
+				-o docs/index.html
+			rm -f "$nav_file"
 		done
+
 	elif [ "$count" -gt 1 ]; then
 		for file in *.md; do
 			[ -f "$file" ] || continue
-			output="_site/${file%.md}.html"
-			echo "Processing: $file → $output"
-			if [ "$file" = README.md ]; then
-				pandoc "$file" -f gfm \
-				 --css=style.css \
-				 --include-before-body=_site/toggle.html \
-				 --metadata title="$title" \
-				 -o _site/index.html
+
+			if [ "$file" = "README.md" ]; then
+				output="docs/index.html"
+				meta_title="$title"
+				current="index"
 			else
-				pandoc "$file" -f gfm --css=style.css \
-				 --include-before-body=_site/toggle.html \
-				 --metadata title="${file%.md}" \
-				 -o "$output"
+				output="docs/${file%.md}.html"
+				meta_title="${file%.md}"
+				current="${file%.md}"
 			fi
+
+			local nav_file="docs/_nav_${current}.html"
+			_build_nav "$current" "$nav_file"
+
+			echo "Processing: $file → $output"
+			# multi file
+			pandoc "$file" -f gfm -s \
+				--css=style.css \
+				--toc \
+				--toc-depth=3 \
+				--include-before-body=src/toggle.html \
+				--include-before-body=src/toc.html \
+				--include-before-body="$nav_file" \
+				--metadata title="$meta_title" \
+				-o "$output"
+			rm -f "$nav_file"
 		done
 	else
-		_re "ERROR: Not .md files found!"
+		_re "ERROR: No .md files found!"
 	fi
+
 	_g "Finished"
 }
 
@@ -166,32 +223,27 @@ target_help() { ## Show this help message
 		sub(/\(\) \{/, "", $1)
 		gsub(/^[ \t]+/, "", $1)
 		printf "  \033[36m%-15s\033[0m %s\n", $1, $2
-	}' "$0" | sort
+	}' "$0" | sort || _re 'ERROR: No functions found!\nCreate function you want use for arguments and help as:\ntarget_"$Name of argument aka function"() { ## Your usage message here.'
 	echo ""
 }
 
 # Target: serve
-target_serve() { ## Serve site locally out of _site folder
-	if [ ! -f _site/index.html ]; then
+target_serve() { ## Serve site locally out of docs folder
+	if [ ! -f docs/index.html ]; then
 		_r "Site not built!"
 		ask 'Build first?' && target_build "$@" || _re "Exiting"
 	fi
 
 	_g 'Press Ctrl+C to stop'
-	python3 -m http.server -d _site 8000
+	python3 -m http.server -d docs 8000
 }
 
 # Main script logic
 main() {
 	local target="${1:-help}"
-
-	# Remove "target_" prefix if user included it
 	target="${target#target_}"
-
-	# Convert hyphens to underscores for function names
 	local func_name="target_${target//-/_}"
 
-	# Check if function exists
 	if declare -f "$func_name" > /dev/null; then
 		shift
 		"$func_name" "$@"

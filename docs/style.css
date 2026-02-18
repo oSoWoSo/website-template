@@ -149,6 +149,67 @@ li {
   margin-bottom: 0.5em; /* Margin below list items */
 }
 
+/* ========================================
+   Navigation
+   ======================================== */
+nav {
+  margin-bottom: 2em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+  padding: 0;
+}
+
+nav ul li {
+  margin-bottom: 0;
+}
+
+nav ul li a,
+nav ul li a:visited {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--link-color);
+  text-decoration: none;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+nav ul li a:hover {
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  border-color: var(--accent-color);
+  text-decoration: none;
+}
+
+/* Active/current page link */
+nav ul li a.active {
+  background-color: var(--green);
+  color: var(--white);
+  border-color: var(--green);
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    gap: 0.3em;
+  }
+
+  nav ul li a {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+}
+
 p {
   margin-bottom: 1em; /* Margin below paragraphs */
   line-height: 1.8; /* Set line spacing for paragraphs */
@@ -183,6 +244,125 @@ th, td {
   padding: 10px; /* Padding for table cells */
   text-align: left; /* Align text to the left */
   border-bottom: 1px solid var(--border-color); /* Bottom border for cells */
+}
+
+/* ========================================
+   Layout - Sidebar + Content
+   ======================================== */
+.page-wrapper {
+  display: flex;
+  gap: 2em;
+  align-items: flex-start;
+  margin-top: 1em;
+}
+
+/* TOC Sidebar */
+#TOC {
+  position: sticky;
+  top: 20px;
+  min-width: 220px;
+  max-width: 220px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 1em;
+  font-size: 0.85rem;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+#TOC.collapsed {
+  min-width: unset;
+  max-width: unset;
+  width: auto;
+  padding: 0.5em;
+  overflow: hidden;
+}
+
+#TOC.collapsed > ul {
+  display: none;
+}
+
+#TOC.collapsed > #toc-title {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+}
+
+#toc-title {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--green-tea);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+#toc-title:hover {
+  color: var(--yellowish);
+}
+
+#toc-toggle-icon {
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+#TOC ul {
+  margin-left: 0.8em;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+#TOC ul li {
+  margin-bottom: 0.3em;
+}
+
+#TOC a,
+#TOC a:visited {
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.82rem;
+  display: block;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: var(--transition);
+}
+
+#TOC a:hover {
+  color: var(--yellowish);
+  background-color: var(--bg-color);
+  text-decoration: none;
+}
+
+/* Main content next to sidebar */
+body > *:not(#TOC):not(nav):not(.theme-toggle) {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Wrap everything after nav in flex container — done via JS */
+.page-wrapper > .main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    flex-direction: column;
+  }
+
+  #TOC {
+    position: static;
+    max-width: 100%;
+    width: 100%;
+  }
 }
 
 ul {
