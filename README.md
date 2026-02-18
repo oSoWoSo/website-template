@@ -19,8 +19,6 @@ Look at [website](https://osowoso.github.io/website-template/)
 - If there are more md files it will create menu structure for all md files
 - Will create dark/light theme switcher
 
-Live [preview]()
-
 ---
 layout: default
 ---

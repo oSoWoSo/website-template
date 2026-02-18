@@ -148,11 +148,15 @@ target_build() { ## Builds the website, optional: title argument
 		title="$1"
 	fi
 	_g "Creating: $title"
+	if [ -f docs/CNAME ]; then
+		cp docs/CNAME src/
+	fi
 	rm -rf docs && mkdir -p docs
 	cp src/*.js docs/
 	cp src/*.css docs/
 	cp src/*.ico docs/
 	cp src/*.jpg docs/
+	cp src/CNAME docs/ 2>/dev/null || true
 
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
@@ -223,7 +227,9 @@ target_help() { ## Show this help message
 		sub(/\(\) \{/, "", $1)
 		gsub(/^[ \t]+/, "", $1)
 		printf "  \033[36m%-15s\033[0m %s\n", $1, $2
-	}' "$0" | sort || _re 'ERROR: No functions found!\nCreate function you want use for arguments and help as:\ntarget_"$Name of argument aka function"() { ## Your usage message here.'
+	}' "$0" | sort || _re 'ERROR: No functions found!
+Create function you want use for arguments and help as:
+target_"Name of argument aka function"() { ## Your usage message here.'
 	echo ""
 }
 
