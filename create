@@ -103,14 +103,29 @@ anything else for Quit..."
 fi
 export -f _r _re _g _b _y
 
+# ---------------------------------------------------------------------------
+# Optional override: set FORGE_URL to your Gitea/Forgejo base URL to skip
+# auto-detection, e.g. in .env or before calling the script:
+#   export FORGE_URL="https://git.example.com"
+# ---------------------------------------------------------------------------
+[ -f .env ] && source .env
+
+# Try to detect a Gitea/Forgejo instance by probing /api/v1/meta
+# Returns 0 (true) if confirmed, 1 if not
+_is_gitea() {
+	local base_url="$1"
+	local response
+	response=$(curl -sf --max-time 5 "${base_url}/api/v1/meta" 2>/dev/null)
+	# Gitea/Forgejo meta endpoint returns JSON with a "version" field
+	[[ "$response" =~ \"version\" ]] && return 0
+	return 1
+}
+
 # Detect repository URL and platform from git remote origin
 _detect_repo() {
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
 		_r "Not a git repository — repo buttons will be disabled"
-		REPO_URL=""
-		REPO_PLATFORM=""
-		REPO_ZIP_URL=""
-		REPO_RELEASE_URL=""
+		REPO_URL="" REPO_PLATFORM="" REPO_ZIP_URL="" REPO_RELEASE_URL=""
 		return
 	fi
 
@@ -119,14 +134,11 @@ _detect_repo() {
 
 	if [ -z "$raw" ]; then
 		_r "No git remote 'origin' found — repo buttons will be disabled"
-		REPO_URL=""
-		REPO_PLATFORM=""
-		REPO_ZIP_URL=""
-		REPO_RELEASE_URL=""
+		REPO_URL="" REPO_PLATFORM="" REPO_ZIP_URL="" REPO_RELEASE_URL=""
 		return
 	fi
 
-	# Normalize SSH → HTTPS  (git@github.com:user/repo.git → https://github.com/user/repo)
+	# Normalize SSH → HTTPS
 	# Handles: git@host:user/repo.git  and  https://host/user/repo.git
 	local https_url
 	if [[ "$raw" =~ ^git@ ]]; then
@@ -135,12 +147,18 @@ _detect_repo() {
 		https_url="${raw%.git}"
 	fi
 
-	# Detect platform
+	# Extract base URL (scheme + host) and slug (user/repo)
+	local base_url slug
+	base_url=$(echo "$https_url" | grep -oP 'https?://[^/]+')
+	slug=$(echo "$https_url" | sed "s|${base_url}/||")
+
+	# Detect platform — known hosts first, then Gitea/Forgejo probe
 	if [[ "$https_url" =~ github\.com ]]; then
 		REPO_PLATFORM="github"
 		REPO_URL="$https_url"
 		REPO_ZIP_URL="${https_url}/archive/refs/heads/main.zip"
 		REPO_RELEASE_URL="${https_url}/releases/latest"
+
 	elif [[ "$https_url" =~ gitlab\.com ]]; then
 		REPO_PLATFORM="gitlab"
 		REPO_URL="$https_url"
@@ -149,16 +167,34 @@ _detect_repo() {
 		proj_path=$(echo "$https_url" | sed 's|https://gitlab\.com/||')
 		REPO_ZIP_URL="https://gitlab.com/${proj_path}/-/archive/main/${proj_path##*/}-main.zip"
 		REPO_RELEASE_URL="${https_url}/-/releases"
+
 	else
-		# Generic fallback — just show source link
+		# Gitea/Forgejo: use FORGE_URL override or auto-detect via API probe
+		local forge_base="${FORGE_URL:-}"
+
+		if [ -n "$forge_base" ]; then
+			_b "FORGE_URL override: $forge_base"
+			REPO_PLATFORM="gitea"
+		elif _is_gitea "$base_url"; then
+			_g "Gitea/Forgejo detected at: $base_url"
+			forge_base="$base_url"
+			REPO_PLATFORM="gitea"
+		else
+			_y "Unknown platform — only source link will be shown"
 		REPO_PLATFORM="other"
 		REPO_URL="$https_url"
 		REPO_ZIP_URL=""
 		REPO_RELEASE_URL=""
+			_check_release
+			return
+		fi
+
+		REPO_URL="$https_url"
+		REPO_ZIP_URL="${forge_base}/${slug}/archive/main.zip"
+		REPO_RELEASE_URL="${https_url}/releases/latest"
 	fi
 
 	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
-
 	# Check if any release exists via API
 	_check_release
 }
@@ -167,17 +203,14 @@ _detect_repo() {
 _check_release() {
 	REPO_HAS_RELEASE=0
 
-	if [ -z "$REPO_URL" ]; then
-		return
-	fi
+	[ -z "$REPO_URL" ] && return
 
-	local http_code
+	local base_url slug http_code body
+	base_url=$(echo "$REPO_URL" | grep -oP 'https?://[^/]+')
+	slug=$(echo "$REPO_URL" | sed "s|${base_url}/||")
 
 	case "$REPO_PLATFORM" in
 		github)
-			# Extract owner/repo from URL
-			local slug
-			slug=$(echo "$REPO_URL" | sed 's|https://github\.com/||')
 			http_code=$(curl -sf -o /dev/null -w "%{http_code}" \
 				-H "Accept: application/vnd.github+json" \
 				"https://api.github.com/repos/${slug}/releases/latest" 2>/dev/null)
@@ -185,20 +218,19 @@ _check_release() {
 			[ "$http_code" = "200" ] && REPO_HAS_RELEASE=1
 			;;
 		gitlab)
-			local slug
-			slug=$(echo "$REPO_URL" | sed 's|https://gitlab\.com/||' | sed 's|/|%2F|g')
-			http_code=$(curl -sf -o /dev/null -w "%{http_code}" \
-				"https://gitlab.com/api/v4/projects/${slug}/releases?per_page=1" 2>/dev/null)
-			# Returns 200 with [] if no releases, or 200 with data if releases exist
-			if [ "$http_code" = "200" ]; then
-				local body
-				body=$(curl -sf \
-					"https://gitlab.com/api/v4/projects/${slug}/releases?per_page=1" 2>/dev/null)
-				[ "$body" != "[]" ] && REPO_HAS_RELEASE=1
-			fi
+			local encoded_slug
+			encoded_slug=$(echo "$slug" | sed 's|/|%2F|g')
+			body=$(curl -sf \
+				"https://gitlab.com/api/v4/projects/${encoded_slug}/releases?per_page=1" 2>/dev/null)
+			[ -n "$body" ] && [ "$body" != "[]" ] && REPO_HAS_RELEASE=1
+			;;
+		gitea)
+			# Gitea/Forgejo: GET /api/v1/repos/{owner}/{repo}/releases?limit=1
+			body=$(curl -sf --max-time 5 \
+				"${base_url}/api/v1/repos/${slug}/releases?limit=1" 2>/dev/null)
+			[ -n "$body" ] && [ "$body" != "[]" ] && [ "$body" != "null" ] && REPO_HAS_RELEASE=1
 			;;
 		*)
-			# Unknown platform — assume no release
 			REPO_HAS_RELEASE=0
 			;;
 	esac
@@ -241,7 +273,7 @@ _build_nav() {
 	# Repo buttons (only when URLs are available)
 	if [ -n "$REPO_RELEASE_URL" ]; then
 		if [ "${REPO_HAS_RELEASE:-0}" = "1" ]; then
-		echo "  <li><a href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
+			echo "  <li><a href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
 		else
 			echo "  <li><a class=\"no-release\" href=\"${REPO_RELEASE_URL}\">⏬ release</a></li>" >> "$nav_file"
 		fi
