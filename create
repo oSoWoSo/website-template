@@ -317,6 +317,7 @@ target_build() { ## Builds the website, optional: title argument
 	fi
 	rm -rf docs && mkdir -p docs
 	cp src/* docs/
+	rm -f docs/toggle.html docs/toc.html
 
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
@@ -367,11 +368,10 @@ target_build() { ## Builds the website, optional: title argument
 				-o "$output"
 			rm -f "$nav_file"
 		done
+
 	else
 		_re "ERROR: No .md files found!"
 	fi
-
-	rm -rf docs/toggle.html docs/toc.html
 	_g "Finished"
 }
 

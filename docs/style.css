@@ -37,6 +37,8 @@
   --shadow: 0 2px 8px rgba(135, 255, 135, 0.1); /* Shadow effect */
   --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2); /* Larger shadow effect */
   --transition: all 0.3s ease; /* Transition effects */
+
+  --nav-height: 52px;
 }
 
 /* Light theme */
@@ -153,8 +155,13 @@ li {
    Navigation
    ======================================== */
 nav {
-  margin-bottom: 2em;
-  padding-bottom: 1em;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: var(--nav-height);
+  background-color: var(--bg-color);
+  padding: 0.8em 0;
+  margin-bottom: 1.5em;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -263,16 +270,16 @@ th, td {
   display: flex;
   gap: 2em;
   align-items: flex-start;
-  margin-top: 1em;
+  margin-top: 0;
 }
 
 /* TOC Sidebar */
 #TOC {
   position: sticky;
-  top: 20px;
+  top: calc(var(--nav-height) + 10px);
+  max-height: calc(100vh - var(--nav-height) - 20px);
   min-width: 220px;
   max-width: 220px;
-  max-height: calc(100vh - 40px);
   overflow-y: auto;
   background-color: var(--bg-light);
   border: 1px solid var(--border-color);
@@ -387,7 +394,7 @@ ul, ol {
 
 /* Theme toggle button */
 .theme-toggle {
-  position: fixed; /* Fixed position for the toggle button */
+  position: absolue;
   top: 20px; /* Distance from the top */
   right: 20px; /* Distance from the right */
   background: var(--switch-background); /* Button background color */

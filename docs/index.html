@@ -157,15 +157,30 @@
   });
 </script>
 <nav><ul>
+  <li><a href="https://osowoso.org">oSoWoSo</a></li>
   <li><a href="index.html" class="active">Home</a></li>
+  <li><a class="no-release" href="https://github.com/oSoWoSo/website-template/releases/latest">⏬ release</a></li>
+  <li><a href="https://github.com/oSoWoSo/website-template/archive/refs/heads/main.zip">📦repo zip</a></li>
+  <li><a href="https://github.com/oSoWoSo/website-template">🔗git</a></li>
+  <li>⏭️</a></li>
 </ul></nav>
 <header id="title-block-header">
 <h1 class="title">website-template</h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
+<li><a href="#website-template" id="toc-website-template">Website
+template</a></li>
+<li><a href="#how-to" id="toc-how-to">How to</a></li>
+<li><a href="#what-does" id="toc-what-does">What does</a>
+<ul>
+<li><a href="#layout-default" id="toc-layout-default">layout:
+default</a>
+<ul>
 <li><a href="#preview-page-types" id="toc-preview-page-types">Preview
 Page Types</a></li>
+</ul></li>
+</ul></li>
 <li><a href="#header-1" id="toc-header-1">Header 1</a>
 <ul>
 <li><a href="#header-2" id="toc-header-2">Header 2</a>
@@ -182,13 +197,48 @@ ordered list:</a></li>
 list:</a></li>
 <li><a href="#small-image" id="toc-small-image">Small image</a></li>
 <li><a href="#large-image" id="toc-large-image">Large image</a></li>
+<li><a href="#spoiler" id="toc-spoiler">Spoiler</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#wink-click-for-open-preview-spoiler-arrow_down_small"
+id="toc-wink-click-for-open-preview-spoiler-arrow_down_small">😉 click
+for open PREVIEW spoiler 🔽</a></li>
+<li><a href="#wink-click-for-open-preview-spoiler-arrow_up_small"
+id="toc-wink-click-for-open-preview-spoiler-arrow_up_small">😉 click for
+open PREVIEW spoiler 🔼</a>
+<ul>
 <li><a href="#definition-lists-can-be-used-with-html-syntax"
 id="toc-definition-lists-can-be-used-with-html-syntax">Definition lists
 can be used with HTML syntax.</a></li>
 </ul></li>
-</ul></li>
 </ul>
 </nav>
+<h1 id="website-template">Website template</h1>
+<p>To quickly create website with our design<br />
+(Which you can easily change to your own)<br />
+From any md file in repository</p>
+<p>Look at <a
+href="https://osowoso.github.io/website-template/">website</a></p>
+<h1 id="how-to">How to</h1>
+<ul>
+<li>Copy all files from template branch to your repository</li>
+<li>(pandoc needed) run <code>./create build</code></li>
+<li>(optionaly) (python3 needed) You can quickly test in browser with
+<code>./create serve</code></li>
+<li>Enable pages on GitHub or elsewhere</li>
+<li>Create pages from branch directory docs/</li>
+<li>Action should automaticaly build your new site</li>
+</ul>
+<h1 id="what-does">What does</h1>
+<ul>
+<li>Create html files for any md file in repository</li>
+<li>If is only README.md file, It will create index.html from it</li>
+<li>If there are more md files it will create menu structure for all md
+files</li>
+<li>Will create dark/light theme switcher</li>
+</ul>
+<hr />
+<h2 id="layout-default">layout: default</h2>
 <h3 id="preview-page-types">Preview Page Types</h3>
 <p><a href="samples/listings-page">Listing Pages</a></p>
 <p>Text can be <strong>bold</strong>, <em>italic</em>, or
@@ -307,6 +357,21 @@ below this.</h3>
 <h3 id="large-image">Large image</h3>
 <p><img
 src="https://avatars.githubusercontent.com/u/82756042?s=400&amp;u=2f72a4c44a585158e40c7f4f1dcc674a25b3d51e&amp;v=4" /></p>
+<h3 id="spoiler">Spoiler</h3>
+<h1 id="wink-click-for-open-preview-spoiler-arrow_down_small">😉 click
+for open PREVIEW spoiler 🔽</h1>
+<p>
+<details>
+  <summary>gumák preview (SVG)</summary>
+
+<p><img
+src="https://raw.githubusercontent.com/oSoWoSo/gumak/refs/heads/main/DOCS/gumak.svg"
+alt="gumák" /></p>
+</details>
+</p>
+
+<h1 id="wink-click-for-open-preview-spoiler-arrow_up_small">😉 click for
+open PREVIEW spoiler 🔼</h1>
 <h3 id="definition-lists-can-be-used-with-html-syntax">Definition lists
 can be used with HTML syntax.</h3>
 <dl>
