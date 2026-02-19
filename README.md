@@ -1,4 +1,3 @@
-# Website template
 To quickly create website with our design  
 (Which you can easily change to your own)  
 From any md file in repository
