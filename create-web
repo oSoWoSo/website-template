@@ -129,17 +129,17 @@ _detect_repo() {
 		return
 	fi
 
+	# Always use the main remote repository
 	local raw
-	raw=$(git remote get-url origin 2>/dev/null)
+	raw=$(git remote get-url "$(git remote | head -n 1)" 2>/dev/null)
 
 	if [ -z "$raw" ]; then
-		_r "No git remote 'origin' found — repo buttons will be disabled"
+		_r "No git remote found — repo buttons will be disabled"
 		REPO_URL="" REPO_PLATFORM="" REPO_ZIP_URL="" REPO_RELEASE_URL=""
 		return
 	fi
 
 	# Normalize SSH → HTTPS
-	# Handles: git@host:user/repo.git  and  https://host/user/repo.git
 	local https_url
 	if [[ "$raw" =~ ^git@ ]]; then
 		https_url=$(echo "$raw" | sed 's|git@\(.*\):\(.*\)\.git|https://\1/\2|; s|git@\(.*\):\(.*\)|https://\1/\2|')
