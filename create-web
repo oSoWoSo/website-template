@@ -115,7 +115,7 @@ export -f _r _re _g _b _y
 _is_gitea() {
 	local base_url="$1"
 	local response
-	response=$(curl -sf --max-time 5 "${base_url}/api/v1/meta" 2>/dev/null)
+	response=$(curl -sfL --max-time 5 "${base_url}/api/v1/meta" 2>/dev/null)
 	# Gitea/Forgejo meta endpoint returns JSON with a "version" field
 	[[ "$response" =~ \"version\" ]] && return 0
 	return 1
@@ -167,6 +167,15 @@ _detect_repo() {
 		proj_path=$(echo "$https_url" | sed 's|https://gitlab\.com/||')
 		REPO_ZIP_URL="https://gitlab.com/${proj_path}/-/archive/main/${proj_path##*/}-main.zip"
 		REPO_RELEASE_URL="${https_url}/-/releases"
+
+	elif [[ "$https_url" =~ codeberg\.org ]]; then
+		REPO_PLATFORM="gitea"
+		REPO_URL="$https_url"
+		REPO_ZIP_URL="${https_url}/archive/main.zip"
+		REPO_RELEASE_URL="${https_url}/releases/latest"
+		_g "Codeberg/Forgejo detected: $REPO_URL"
+		_check_release
+		return
 
 	else
 		# Gitea/Forgejo: use FORGE_URL override or auto-detect via API probe
@@ -224,7 +233,7 @@ _check_release() {
 				"https://gitlab.com/api/v4/projects/${encoded_slug}/releases?per_page=1" 2>/dev/null)
 			[ -n "$body" ] && [ "$body" != "[]" ] && REPO_HAS_RELEASE=1
 			;;
-		gitea)
+		gitea|codeberg)
 			# Gitea/Forgejo: GET /api/v1/repos/{owner}/{repo}/releases?limit=1
 			body=$(curl -sf --max-time 5 \
 				"${base_url}/api/v1/repos/${slug}/releases?limit=1" 2>/dev/null)
