@@ -181,10 +181,10 @@ _detect_repo() {
 			REPO_PLATFORM="gitea"
 		else
 			_y "Unknown platform — only source link will be shown"
-		REPO_PLATFORM="other"
-		REPO_URL="$https_url"
-		REPO_ZIP_URL=""
-		REPO_RELEASE_URL=""
+			REPO_PLATFORM="other"
+			REPO_URL="$https_url"
+			REPO_ZIP_URL=""
+			REPO_RELEASE_URL=""
 			_check_release
 			return
 		fi
@@ -317,7 +317,7 @@ target_build() { ## Builds the website, optional: title argument
 	fi
 	rm -rf docs && mkdir -p docs
 	cp -r src/* docs/
-	rm -f docs/toggle.html docs/toc.html
+	rm -f docs/toggle.html docs/toc.html docs/svg-color.html
 
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
@@ -333,6 +333,7 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toggle.html \
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
+				--include-after-body=src/svg-color.html \
 				--metadata title="$title" \
 				-o docs/index.html
 			rm -f "$nav_file"
@@ -364,11 +365,11 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toggle.html \
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
+				--include-after-body=src/svg-color.html \
 				--metadata title="$meta_title" \
 				-o "$output"
 			rm -f "$nav_file"
 		done
-
 	else
 		_re "ERROR: No .md files found!"
 	fi
