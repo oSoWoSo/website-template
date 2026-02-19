@@ -316,7 +316,7 @@ target_build() { ## Builds the website, optional: title argument
 		cp docs/CNAME src/
 	fi
 	rm -rf docs && mkdir -p docs
-	cp src/* docs/
+	cp -r src/* docs/
 	rm -f docs/toggle.html docs/toc.html
 
 	if [ "$count" = 1 ]; then
