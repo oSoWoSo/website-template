@@ -38,6 +38,7 @@
   --shadow-lg: 0 4px 20px rgba(135, 255, 135, 0.2); /* Larger shadow effect */
   --transition: all 0.3s ease; /* Transition effects */
 
+  --nav-height: 52px;
   --color-icon: var(--white);
 }
 
