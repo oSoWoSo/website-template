@@ -135,6 +135,14 @@ end
 
 # 😉 click for open PREVIEW spoiler 🔼
 
+# Recolor svg
+
+## Original color  
+<img src="https://raw.githubusercontent.com/oSoWoSo/quickemu-font-and-logos/refs/heads/quickemu/vectors/midnightbsd.svg" width="24">
+
+## Color depending on theme  
+<img src="https://raw.githubusercontent.com/oSoWoSo/quickemu-font-and-logos/refs/heads/quickemu/vectors/midnightbsd.svg" width="24" data-colorize>
+
 ### Definition lists can be used with HTML syntax.
 
 <dl>
