@@ -8,6 +8,8 @@
 # License: MIT
 #
 
+version='0.0.3'
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source shared functions
 # shellcheck source=lib.sh
@@ -120,7 +122,7 @@ _detect_repo() {
 		REPO_RELEASE_URL="${https_url}/releases/latest"
 	fi
 
-	echo "Repo detected [$REPO_PLATFORM]: $REPO_URL"
+	printf "%-12s %s\n" "${REPO_PLATFORM}:" "$slug"
 	_check_release
 }
 
@@ -160,9 +162,11 @@ _check_release() {
 	esac
 
 	if [ "$REPO_HAS_RELEASE" = "1" ]; then
-		echo "Release found"
+		#echo "Release: found"
+		printf "%-12s %s\n" "Release:" found
 	else
-		_y "No release found — release button will be shown as strikethrough"
+		#_y "No release found — release button will be shown as strikethrough"
+		printf "%-12s %s\n" "Release:" "${RED}No${NC}"
 	fi
 }
 
@@ -224,7 +228,7 @@ _build_goatcounter_snippet() {
 	local url="$1"
 	local file="docs/_goatcounter.html"
 	cat > "$file" <<EOF
-<script data-goatcounter="${url}"
+<script data-goatcounter="https://${url}/count"
         async src="//gc.zgo.at/count.js"></script>
 EOF
 	echo "$file"
@@ -293,15 +297,15 @@ target_build() { ## Builds the website
 	local giscus_category="$5"
 	local giscus_category_id="$6"
 	local count
-	count=$(find ./ -name '*.md' | wc -l)
 
+	_g "Creating: $title"
+	count=$(find ./ -name '*.md' | wc -l)
 	_detect_repo
 
 	if [ -z "$title" ]; then
 		_r "No website title provided — using generated one!"
 		title=$(basename "$(pwd)" | sed 's/_/ /g')
 	fi
-	_g "Creating: $title"
 
 	[ -f docs/CNAME ] && cp docs/CNAME src/
 	rm -rf docs && mkdir -p docs
@@ -377,7 +381,6 @@ target_build() { ## Builds the website
 	fi
 
 	rm -f docs/_goatcounter.html docs/_giscus.html
-	_g "Finished"
 }
 
 errorMessage='ERROR: No functions found!

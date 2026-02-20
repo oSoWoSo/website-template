@@ -6,6 +6,8 @@
 # License: MIT
 #
 
+version='0.0.3'
+
 # Source shared functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
@@ -15,7 +17,7 @@ source "${SCRIPT_DIR}/lib.sh"
 if [ -f "${SCRIPT_DIR}/.env" ]; then
 	source "${SCRIPT_DIR}/.env"
 	export GITHUB_TOKEN
-	_g 'Using .env'
+	echo 'Using .env'
 else
 	_re '.env not found! Create it from src/.env'
 fi
@@ -111,7 +113,7 @@ _create_env() {
 		fi
 
 		mkdir -p "$d/src"
-		_g "Creating src/.env for: $d"
+		echo "Creating src/.env for: $d"
 		cat > "$d/src/.env" <<EOF
 TITLE='${title}'
 
@@ -124,7 +126,6 @@ GISCUS_CATEGORY_ID='${giscus_category_id}'
 
 EOF
 		[ -n "$FORGE_URL" ] && echo "FORGE_URL=\"${FORGE_URL}\"" >> "$d/src/.env"
-		_g "Created: $d/src/.env"
 	done
 }
 
