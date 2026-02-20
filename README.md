@@ -17,6 +17,8 @@ Look at [website](https://osowoso.github.io/website-template/)
 - If is only README.md file, It will create index.html from it
 - If there are more md files it will create menu structure for all md files
 - Will create dark/light theme switcher
+- Try to add link to latest release and repository
+- Add GoatCounter for open source statistics
 
 ---
 layout: default
