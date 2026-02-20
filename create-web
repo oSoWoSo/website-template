@@ -8,8 +8,6 @@
 # License: MIT
 #
 
-count=$(find ./ -name '*.md' | wc -l)
-
 # Functions for colored bordered messages (gum) or ANSI colored messages
 if command -v gum -v >/dev/null; then
 	_r() {
@@ -87,7 +85,7 @@ else
 		_y "Press Enter to continue
 anything else for Quit..."
 		echo "$1"
-		read -n 1 -s key
+		read -r -n 1 -s key
 		if [[ ! $key == '' ]]; then
 			exit 1
 		fi
@@ -108,7 +106,14 @@ export -f _r _re _g _b _y
 # auto-detection, e.g. in .env or before calling the script:
 #   export FORGE_URL="https://git.example.com"
 # ---------------------------------------------------------------------------
-[ -f .env ] && source .env
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+	source "${SCRIPT_DIR}/.env"
+	_g "Using ${SCRIPT_DIR}/.env"
+elif [ -f ".env" ]; then
+	source ".env"
+	_g 'Using .env'
+fi
 
 # Try to detect a Gitea/Forgejo instance by probing /api/v1/meta
 # Returns 0 (true) if confirmed, 1 if not
@@ -120,7 +125,6 @@ _is_gitea() {
 	[[ "$response" =~ \"version\" ]] && return 0
 	return 1
 }
-
 # Detect repository URL and platform from git remote origin
 _detect_repo() {
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
@@ -205,7 +209,6 @@ _detect_repo() {
 	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
 	_check_release
 }
-
 # Query platform API to detect if at least one release exists
 _check_release() {
 	REPO_HAS_RELEASE=0
@@ -258,7 +261,6 @@ add_validation() {
 </p>
 ' >> "$output"
 }
-
 # Build nav snippet for a given page with active class
 # Injects: oSoWoSo | Home | [Download Release] [Download ZIP] [Source] | other pages...
 _build_nav() {
@@ -306,7 +308,6 @@ _build_nav() {
 
 	echo '</ul></nav>' >> "$nav_file"
 }
-
 # Generate GoatCounter snippet file, returns path
 _build_goatcounter_snippet() {
 	local url="$1"
@@ -317,7 +318,6 @@ _build_goatcounter_snippet() {
 EOF
 	echo "$file"
 }
-
 # Generate Giscus snippet file, returns path
 _build_giscus_snippet() {
 	local repo="$1" repo_id="$2" category="$3" category_id="$4"
@@ -340,21 +340,6 @@ _build_giscus_snippet() {
 EOF
 	echo "$file"
 }
-
-# action: name of variable to store value in, or "target" to set target
-# format: "short|long|value|description|action"
-ARGS=(
-	"h|help||Show this help message|target"
-	"b|build||Build the website|target"
-	"s|serve||Serve site locally|target"
-	"t|title|<title>|Set website title|title"
-	"g|goatcounter|<url>|GoatCounter analytics URL|goatcounter_url"
-	"r|giscus-repo|<repo>|Giscus repo (user/repo)|giscus_repo"
-	"i|giscus-repo-id|<id>|Giscus repo ID|giscus_repo_id"
-	"c|giscus-category|<name>|Giscus category name|giscus_category"
-	"C|giscus-cat-id|<id>|Giscus category ID|giscus_category_id"
-)
-
 # Build getopts string from ARGS, e.g. "hbst:g:r:i:c:C:"
 _build_optstring() {
 	local optstring=""
@@ -367,7 +352,6 @@ _build_optstring() {
 	done
 	echo "$optstring"
 }
-
 # Target: build
 target_build() { ## Builds the website
 	local title="$1"
@@ -376,6 +360,8 @@ target_build() { ## Builds the website
 	local giscus_repo_id="$4"
 	local giscus_category="$5"
 	local giscus_category_id="$6"
+	local count
+	count=$(find ./ -name '*.md' | wc -l)
 
 	_detect_repo
 
@@ -464,7 +450,6 @@ target_build() { ## Builds the website
 	rm -f docs/_goatcounter.html docs/_giscus.html
 	_g "Finished"
 }
-
 # Target: help
 target_help() { ## Show this help message
 	_b 'OSOWOSO Website Build System'
@@ -484,7 +469,7 @@ target_"Name of argument aka function"() { ## Your usage message here.'
 	echo ""
 	echo "Available arguments:"
 	echo ""
-	echo "ARGS count: ${#ARGS[@]}"  # přidej tohle dočasně
+	# echo "ARGS count: ${#ARGS[@]}" # For DEBUG
 	for entry in "${ARGS[@]}"; do
 		local short long value desc
 		short=$(echo "$entry" | cut -d'|' -f1)
@@ -493,15 +478,23 @@ target_"Name of argument aka function"() { ## Your usage message here.'
 		desc=$(echo "$entry"  | cut -d'|' -f4)
 		printf "  \033[33m%-32s\033[0m %s\n" "-${short}, --${long} ${value}" "$desc"
 	done
-	echo ""
+	echo -e "\nScript also use .env file if available besides script file\n"
 }
-
 # Target: serve
 target_serve() { ## Serve site locally out of docs folder
+	local title="$1"
+	local goatcounter_url="$2"
+	local giscus_repo="$3"
+	local giscus_repo_id="$4"
+	local giscus_category="$5"
+	local giscus_category_id="$6"
+
 	if [ ! -f docs/index.html ]; then
 		_r "Site not built!"
 		if ask 'Build first?'; then
-			target_build "$@"
+			target_build "$title" "$goatcounter_url" \
+				"$giscus_repo" "$giscus_repo_id" \
+				"$giscus_category" "$giscus_category_id"
 		else
 			_re "Exiting"
 		fi
@@ -510,6 +503,20 @@ target_serve() { ## Serve site locally out of docs folder
 	_g 'Press Ctrl+C to stop'
 	python3 -m http.server -d docs 8000
 }
+
+# action: name of variable to store value in, or "target" to set target
+# format: "short|long|value|description|action"
+ARGS=(
+	"h|help||Show this help message|target"
+	"b|build||Build the website|target"
+	"s|serve||Serve site locally|target"
+	"t|title|<title>|Set website title|title"
+	"g|goatcounter|<url>|GoatCounter analytics URL|goatcounter_url"
+	"r|giscus-repo|<repo>|Giscus repo (user/repo)|giscus_repo"
+	"i|giscus-repo-id|<id>|Giscus repo ID|giscus_repo_id"
+	"c|giscus-category|<name>|Giscus category name|giscus_category"
+	"C|giscus-cat-id|<id>|Giscus category ID|giscus_category_id"
+)
 
 main() {
 	# Convert long arguments to short for getopts
@@ -535,7 +542,7 @@ main() {
 
 	# Default values (overridden by .env via source above)
 	local target="help"
-	local title=""
+	local title="${TITLE:-}"
 	local goatcounter_url="${GOATCOUNTER_URL:-}"
 	local giscus_repo="${GISCUS_REPO:-}"
 	local giscus_repo_id="${GISCUS_REPO_ID:-}"
@@ -571,7 +578,7 @@ main() {
 	declare -f "$func_name" > /dev/null || _re 'Unknown target: $target. Run '$0 help' for available targets.'
 
 	case "$target" in
-		build)
+		build|serve)
 			"$func_name" "${title:-}" "$goatcounter_url" \
 				"$giscus_repo" "$giscus_repo_id" \
 				"$giscus_category" "$giscus_category_id" ;;
@@ -579,6 +586,5 @@ main() {
 			"$func_name" "$@" ;;
 	esac
 }
-
 # Run main with all arguments
 main "$@"
