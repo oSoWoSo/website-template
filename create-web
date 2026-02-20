@@ -150,7 +150,7 @@ _detect_repo() {
 	# Extract base URL (scheme + host) and slug (user/repo)
 	local base_url slug
 	base_url=$(echo "$https_url" | grep -oP 'https?://[^/]+')
-	slug=$(echo "$https_url" | sed "s|${base_url}/||")
+	slug="${https_url#"${base_url}"/}"
 
 	# Detect platform — known hosts first, then Gitea/Forgejo probe
 	if [[ "$https_url" =~ github\.com ]]; then
@@ -162,9 +162,8 @@ _detect_repo() {
 	elif [[ "$https_url" =~ gitlab\.com ]]; then
 		REPO_PLATFORM="gitlab"
 		REPO_URL="$https_url"
-		# GitLab: project path needed for archive URL
 		local proj_path
-		proj_path=$(echo "$https_url" | sed 's|https://gitlab\.com/||')
+		proj_path="${https_url#https://gitlab.com/}"
 		REPO_ZIP_URL="https://gitlab.com/${proj_path}/-/archive/main/${proj_path##*/}-main.zip"
 		REPO_RELEASE_URL="${https_url}/-/releases"
 
@@ -204,7 +203,6 @@ _detect_repo() {
 	fi
 
 	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
-	# Check if any release exists via API
 	_check_release
 }
 
@@ -216,25 +214,23 @@ _check_release() {
 
 	local base_url slug http_code body
 	base_url=$(echo "$REPO_URL" | grep -oP 'https?://[^/]+')
-	slug=$(echo "$REPO_URL" | sed "s|${base_url}/||")
+	slug="${REPO_URL#"${base_url}"/}"
 
 	case "$REPO_PLATFORM" in
 		github)
 			http_code=$(curl -sf -o /dev/null -w "%{http_code}" \
 				-H "Accept: application/vnd.github+json" \
 				"https://api.github.com/repos/${slug}/releases/latest" 2>/dev/null)
-			# 200 = release exists, 404 = no releases
 			[ "$http_code" = "200" ] && REPO_HAS_RELEASE=1
 			;;
 		gitlab)
 			local encoded_slug
-			encoded_slug=$(echo "$slug" | sed 's|/|%2F|g')
+			encoded_slug="${slug//\//%2F}"
 			body=$(curl -sf \
 				"https://gitlab.com/api/v4/projects/${encoded_slug}/releases?per_page=1" 2>/dev/null)
 			[ -n "$body" ] && [ "$body" != "[]" ] && REPO_HAS_RELEASE=1
 			;;
-		gitea|codeberg)
-			# Gitea/Forgejo: GET /api/v1/repos/{owner}/{repo}/releases?limit=1
+		gitea)
 			body=$(curl -sf --max-time 5 \
 				"${base_url}/api/v1/repos/${slug}/releases?limit=1" 2>/dev/null)
 			[ -n "$body" ] && [ "$body" != "[]" ] && [ "$body" != "null" ] && REPO_HAS_RELEASE=1
@@ -300,7 +296,9 @@ _build_nav() {
 	for md in *.md; do
 		[ -f "$md" ] || continue
 		[ "$md" = "README.md" ] && continue
-		local name=$(echo "${md%.md}" | sed 's/_/ /g')
+		local name
+		name="${md%.md}"
+		name="${name//_/ }"
 		local active=""
 		[ "$name" = "$current" ] && active=' class="active"'
 		echo "  <li><a href=\"${name}.html\"${active}>${name}</a></li>" >> "$nav_file"
@@ -309,18 +307,84 @@ _build_nav() {
 	echo '</ul></nav>' >> "$nav_file"
 }
 
+# Generate GoatCounter snippet file, returns path
+_build_goatcounter_snippet() {
+	local url="$1"
+	local file="docs/_goatcounter.html"
+	cat > "$file" <<EOF
+<script data-goatcounter="${url}"
+        async src="//gc.zgo.at/count.js"></script>
+EOF
+	echo "$file"
+}
+
+# Generate Giscus snippet file, returns path
+_build_giscus_snippet() {
+	local repo="$1" repo_id="$2" category="$3" category_id="$4"
+	local file="docs/_giscus.html"
+	cat > "$file" <<EOF
+<script src="https://giscus.app/client.js"
+        data-repo="${repo}"
+        data-repo-id="${repo_id}"
+        data-category="${category}"
+        data-category-id="${category_id}"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="cs"
+        crossorigin="anonymous"
+        async></script>
+EOF
+	echo "$file"
+}
+
+# action: name of variable to store value in, or "target" to set target
+# format: "short|long|value|description|action"
+ARGS=(
+	"h|help||Show this help message|target"
+	"b|build||Build the website|target"
+	"s|serve||Serve site locally|target"
+	"t|title|<title>|Set website title|title"
+	"g|goatcounter|<url>|GoatCounter analytics URL|goatcounter_url"
+	"r|giscus-repo|<repo>|Giscus repo (user/repo)|giscus_repo"
+	"i|giscus-repo-id|<id>|Giscus repo ID|giscus_repo_id"
+	"c|giscus-category|<name>|Giscus category name|giscus_category"
+	"C|giscus-cat-id|<id>|Giscus category ID|giscus_category_id"
+)
+
+# Build getopts string from ARGS, e.g. "hbst:g:r:i:c:C:"
+_build_optstring() {
+	local optstring=""
+	for entry in "${ARGS[@]}"; do
+		local short value
+		short=$(echo "$entry" | cut -d'|' -f1)
+		value=$(echo "$entry" | cut -d'|' -f3)
+		optstring+="$short"
+		[ -n "$value" ] && optstring+=":"
+	done
+	echo "$optstring"
+}
+
 # Target: build
-target_build() { ## Builds the website, optional: title argument
+target_build() { ## Builds the website
+	local title="$1"
+	local goatcounter_url="$2"
+	local giscus_repo="$3"
+	local giscus_repo_id="$4"
+	local giscus_category="$5"
+	local giscus_category_id="$6"
+
 	_detect_repo
 
-	if [ -z "$1" ]; then
-		_r "No website title provided
-   using generated one!"
+	if [ -z "$title" ]; then
+		_r "No website title provided — using generated one!"
 		title=$(basename "$(pwd)" | sed 's/_/ /g')
-	else
-		title="$1"
 	fi
 	_g "Creating: $title"
+
 	if [ -f docs/CNAME ]; then
 		cp docs/CNAME src/
 	fi
@@ -328,13 +392,24 @@ target_build() { ## Builds the website, optional: title argument
 	cp -r src/* docs/
 	rm -f docs/toggle.html docs/toc.html docs/svg-color.html
 
+	# Build optional snippet includes
+	local extra_after=()
+	if [ -n "$goatcounter_url" ]; then
+		_g "GoatCounter: $goatcounter_url"
+		extra_after+=("--include-after-body=$(_build_goatcounter_snippet "$goatcounter_url")")
+	fi
+	if [ -n "$giscus_repo" ]; then
+		_g "Giscus: $giscus_repo"
+		extra_after+=("--include-after-body=$(_build_giscus_snippet \
+			"$giscus_repo" "$giscus_repo_id" "$giscus_category" "$giscus_category_id")")
+	fi
+
 	if [ "$count" = 1 ]; then
 		for file in *.md; do
 			[ -f "$file" ] || continue
 			local nav_file="docs/_nav.html"
 			_build_nav "index" "$nav_file"
 			echo "Processing: $file → index.html"
-			# single file
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
@@ -343,7 +418,7 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
 				--include-after-body=src/svg-color.html \
-				--include-after-body=src/goatcounter.html \
+				"${extra_after[@]}" \
 				--metadata title="$title" \
 				-o docs/index.html
 			rm -f "$nav_file"
@@ -353,13 +428,15 @@ target_build() { ## Builds the website, optional: title argument
 		for file in *.md; do
 			[ -f "$file" ] || continue
 
+			local output meta_title current
 			if [ "$file" = "README.md" ]; then
 				output="docs/index.html"
 				meta_title="$title"
 				current="index"
 			else
 				output="docs/${file%.md}.html"
-				meta_title=$(echo "${file%.md}" | sed 's/_/ /g')
+				meta_title="${file%.md}"
+				meta_title="${meta_title//_/ }"
 				current="${file%.md}"
 			fi
 
@@ -367,7 +444,6 @@ target_build() { ## Builds the website, optional: title argument
 			_build_nav "$current" "$nav_file"
 
 			echo "Processing: $file → $output"
-			# multi file
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
@@ -376,7 +452,7 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
 				--include-after-body=src/svg-color.html \
-				--include-after-body=src/goatcounter.html \
+				"${extra_after[@]}" \
 				--metadata title="$meta_title" \
 				-o "$output"
 			rm -f "$nav_file"
@@ -384,6 +460,8 @@ target_build() { ## Builds the website, optional: title argument
 	else
 		_re "ERROR: No .md files found!"
 	fi
+
+	rm -f docs/_goatcounter.html docs/_giscus.html
 	_g "Finished"
 }
 
@@ -391,7 +469,7 @@ target_build() { ## Builds the website, optional: title argument
 target_help() { ## Show this help message
 	_b 'OSOWOSO Website Build System'
 	echo ""
-	echo "Usage: $0 [target]"
+	echo "Usage: $0 [target] [arguments]"
 	echo ""
 	echo "Available targets:"
 	echo ""
@@ -404,32 +482,102 @@ target_help() { ## Show this help message
 Create function you want use for arguments and help as:
 target_"Name of argument aka function"() { ## Your usage message here.'
 	echo ""
+	echo "Available arguments:"
+	echo ""
+	echo "ARGS count: ${#ARGS[@]}"  # přidej tohle dočasně
+	for entry in "${ARGS[@]}"; do
+		local short long value desc
+		short=$(echo "$entry" | cut -d'|' -f1)
+		long=$(echo "$entry"  | cut -d'|' -f2)
+		value=$(echo "$entry" | cut -d'|' -f3)
+		desc=$(echo "$entry"  | cut -d'|' -f4)
+		printf "  \033[33m%-32s\033[0m %s\n" "-${short}, --${long} ${value}" "$desc"
+	done
+	echo ""
 }
 
 # Target: serve
 target_serve() { ## Serve site locally out of docs folder
 	if [ ! -f docs/index.html ]; then
 		_r "Site not built!"
-		ask 'Build first?' && target_build "$@" || _re "Exiting"
+		if ask 'Build first?'; then
+			target_build "$@"
+		else
+			_re "Exiting"
+		fi
 	fi
 
 	_g 'Press Ctrl+C to stop'
 	python3 -m http.server -d docs 8000
 }
 
-# Main script logic
 main() {
-	local target="${1:-help}"
-	target="${target#target_}"
-	local func_name="target_${target//-/_}"
-
-	if declare -f "$func_name" > /dev/null; then
+	# Convert long arguments to short for getopts
+	local args=()
+	while [[ $# -gt 0 ]]; do
+		local matched=0
+		for entry in "${ARGS[@]}"; do
+			local short long value
+			short=$(echo "$entry" | cut -d'|' -f1)
+			long=$(echo "$entry"  | cut -d'|' -f2)
+			value=$(echo "$entry" | cut -d'|' -f3)
+			if [[ "$1" == "--${long}" ]]; then
+				args+=("-${short}")
+				[ -n "$value" ] && { args+=("$2"); shift; }
+				matched=1
+				break
+			fi
+		done
+		[ "$matched" = 0 ] && args+=("$1")
 		shift
-		"$func_name" "$@"
-	else
-		#shellcheck disable=SC2016,2086
-		_re 'Unknown target: $target. Run '$0 help' for available targets.'
+	done
+	set -- "${args[@]}"
+
+	# Default values (overridden by .env via source above)
+	local target="help"
+	local title=""
+	local goatcounter_url="${GOATCOUNTER_URL:-}"
+	local giscus_repo="${GISCUS_REPO:-}"
+	local giscus_repo_id="${GISCUS_REPO_ID:-}"
+	local giscus_category="${GISCUS_CATEGORY:-}"
+	local giscus_category_id="${GISCUS_CATEGORY_ID:-}"
+
+	while getopts "$(_build_optstring)" opt; do
+		for entry in "${ARGS[@]}"; do
+			local short long action
+			short=$(echo "$entry"  | cut -d'|' -f1)
+			long=$(echo "$entry"   | cut -d'|' -f2)
+			action=$(echo "$entry" | cut -d'|' -f5)
+			if [[ "$opt" == "$short" ]]; then
+				if [[ "$action" == "target" ]]; then
+					target="$long"
+				else
+					printf -v "$action" '%s' "$OPTARG"
+				fi
+				break
+			fi
+		done
+	done
+	shift $((OPTIND - 1))
+
+	# Positional argument as target (backwards compatibility: ./make.sh build)
+	if [[ "$target" == "help" && -n "${1:-}" ]]; then
+		target="${1}"
+		shift
 	fi
+
+	local func_name="target_${target//-/_}"
+	#shellcheck disable=SC2016,2086
+	declare -f "$func_name" > /dev/null || _re 'Unknown target: $target. Run '$0 help' for available targets.'
+
+	case "$target" in
+		build)
+			"$func_name" "${title:-}" "$goatcounter_url" \
+				"$giscus_repo" "$giscus_repo_id" \
+				"$giscus_category" "$giscus_category_id" ;;
+		*)
+			"$func_name" "$@" ;;
+	esac
 }
 
 # Run main with all arguments
