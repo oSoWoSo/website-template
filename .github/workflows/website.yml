@@ -1,14 +1,11 @@
 name: Build GitHub Pages from md files
-
 on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - '*.md'
-#      - 'docs/*.css'
-#      - 'docs/*.js'
-#      - .github/workflows/website.yml
+  push:
+    paths:
+      - '*.md'
+      - 'docs/*.css'
+      - 'docs/*.js'
+      - .github/workflows/website.yml
   workflow_dispatch:
 
 permissions:
@@ -23,9 +20,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      docs_changed: ${{ steps.diff.outputs.changed }}
     steps:
       - name: 🛎️ Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -33,18 +34,34 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      - name: Create docs directory
-        run: mkdir -p docs
-
       - name: Make pages
         run: |
-          ./create build
+          mkdir -p docs
+          ./web-create -b
+
+      - name: Check if docs changed
+        id: diff
+        run: |
+          if git diff --quiet HEAD~1 HEAD -- docs/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload artifact
+        if: steps.diff.outputs.changed == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: 'docs/'
 
+  deploy:
+    needs: build
+    if: needs.build.outputs.docs_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
