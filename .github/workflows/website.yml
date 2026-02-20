@@ -37,7 +37,7 @@ jobs:
       - name: Make pages
         run: |
           mkdir -p docs
-          ./create-web -b
+          ./web-create -b
 
       - name: Check if docs changed
         id: diff
