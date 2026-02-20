@@ -343,6 +343,7 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
 				--include-after-body=src/svg-color.html \
+				--include-after-body=src/goatcounter.html \
 				--metadata title="$title" \
 				-o docs/index.html
 			rm -f "$nav_file"
@@ -375,6 +376,7 @@ target_build() { ## Builds the website, optional: title argument
 				--include-before-body=src/toc.html \
 				--include-before-body="$nav_file" \
 				--include-after-body=src/svg-color.html \
+				--include-after-body=src/goatcounter.html \
 				--metadata title="$meta_title" \
 				-o "$output"
 			rm -f "$nav_file"
