@@ -13,11 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 source "${SCRIPT_DIR}/lib.sh"
 
-count=$(find ./ -name '*.md' | wc -l)
-
-# ---------------------------------------------------------------------------
-# .env — project dir takes priority, fallback to script dir
-# ---------------------------------------------------------------------------
+# Load .env — project dir takes priority, fallback to script dir
 if [ -f ".env" ]; then
 	source ".env"
 	_g 'Using .env'
@@ -26,8 +22,10 @@ elif [ -f "${SCRIPT_DIR}/.env" ]; then
 	_g 'Using .env'
 fi
 
-# Try to detect a Gitea/Forgejo instance by probing /api/v1/meta
-# Returns 0 (true) if confirmed, 1 if not
+# ---------------------------------------------------------------------------
+# Repo detection
+# ---------------------------------------------------------------------------
+
 _is_gitea() {
 	local base_url="$1"
 	local response
@@ -36,7 +34,6 @@ _is_gitea() {
 	return 1
 }
 
-# Detect repository URL and platform from git remote origin
 _detect_repo() {
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
 		_r "Not a git repository — repo buttons will be disabled"
@@ -117,10 +114,8 @@ _detect_repo() {
 	_check_release
 }
 
-# Query platform API to detect if at least one release exists
 _check_release() {
 	REPO_HAS_RELEASE=0
-
 	[ -z "$REPO_URL" ] && return
 
 	local base_url slug http_code body
@@ -158,19 +153,22 @@ _check_release() {
 	fi
 }
 
+# ---------------------------------------------------------------------------
+# HTML builders
+# ---------------------------------------------------------------------------
+
 add_validation() {
 	echo '
 <p>
     <a href="https://jigsaw.w3.org/css-validator/check/referer">
         <img style="border:0;width:88px;height:31px"
             src="https://jigsaw.w3.org/css-validator/images/vcss-blue"
-            alt="Ověřit CSS!" />
+            alt="Valid CSS!" />
     </a>
 </p>
 ' >> "$output"
 }
 
-# Build nav snippet for a given page with active class
 _build_nav() {
 	local current="$1"
 	local nav_file="$2"
@@ -208,7 +206,6 @@ _build_nav() {
 	echo '</ul></nav>' >> "$nav_file"
 }
 
-# Generate GoatCounter snippet file, returns path
 _build_goatcounter_snippet() {
 	local url="$1"
 	local file="docs/_goatcounter.html"
@@ -219,7 +216,6 @@ EOF
 	echo "$file"
 }
 
-# Generate Giscus snippet file, returns path
 _build_giscus_snippet() {
 	local repo="$1" repo_id="$2" category="$3" category_id="$4"
 	local file="docs/_giscus.html"
@@ -242,7 +238,23 @@ EOF
 	echo "$file"
 }
 
-# Build getopts string from ARGS, e.g. "hbst:g:r:i:c:C:"
+# ---------------------------------------------------------------------------
+# Argument definitions
+# format: "short|long|value|description|action"
+# action: variable name to store value in, or "target" to set target
+# ---------------------------------------------------------------------------
+ARGS=(
+	"h|help||Show this help message|target"
+	"b|build||Build the website|target"
+	"s|serve||Serve site locally|target"
+	"t|title|<title>|Set website title|title"
+	"g|goatcounter|<url>|GoatCounter analytics URL|goatcounter_url"
+	"r|giscus-repo|<repo>|Giscus repo (user/repo)|giscus_repo"
+	"i|giscus-repo-id|<id>|Giscus repo ID|giscus_repo_id"
+	"c|giscus-category|<n>|Giscus category name|giscus_category"
+	"C|giscus-cat-id|<id>|Giscus category ID|giscus_category_id"
+)
+
 _build_optstring() {
 	local optstring=""
 	for entry in "${ARGS[@]}"; do
@@ -255,21 +267,10 @@ _build_optstring() {
 	echo "$optstring"
 }
 
-# action: name of variable to store value in, or "target" to set target
-# format: "short|long|value|description|action"
-ARGS=(
-	"h|help||Show this help message|target"
-	"b|build||Build the website|target"
-	"s|serve||Serve site locally|target"
-	"t|title|<title>|Set website title|title"
-	"g|goatcounter|<url>|GoatCounter analytics URL|goatcounter_url"
-	"r|giscus-repo|<repo>|Giscus repo (user/repo)|giscus_repo"
-	"i|giscus-repo-id|<id>|Giscus repo ID|giscus_repo_id"
-	"c|giscus-category|<name>|Giscus category name|giscus_category"
-	"C|giscus-cat-id|<id>|Giscus category ID|giscus_category_id"
-)
+# ---------------------------------------------------------------------------
+# Targets
+# ---------------------------------------------------------------------------
 
-# Target: build
 target_build() { ## Builds the website
 	local title="$1"
 	local goatcounter_url="$2"
@@ -288,9 +289,7 @@ target_build() { ## Builds the website
 	fi
 	_g "Creating: $title"
 
-	if [ -f docs/CNAME ]; then
-		cp docs/CNAME src/
-	fi
+	[ -f docs/CNAME ] && cp docs/CNAME src/
 	rm -rf docs && mkdir -p docs
 	cp -r src/* docs/
 	rm -f docs/toggle.html docs/toc.html docs/svg-color.html
@@ -368,8 +367,8 @@ target_build() { ## Builds the website
 }
 
 errorMessage='ERROR: No functions found!
-Create function you want use for arguments and help as:
-target_"Name of argument aka function"() { ## Your usage message here.'
+Create a target function with the format:
+target_name() { ## Description here'
 
 # Target: help
 target_help() { ## Show this help message
@@ -393,7 +392,6 @@ target_help() { ## Show this help message
 	echo -e "\nScript will use .env file if found\n"
 }
 
-# Target: serve
 target_serve() { ## Serve site locally out of docs folder
 	local title="$1"
 	local goatcounter_url="$2"
@@ -416,6 +414,10 @@ target_serve() { ## Serve site locally out of docs folder
 	_g 'Press Ctrl+C to stop'
 	python3 -m http.server -d docs 8000
 }
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 main() {
 	# Convert long arguments to short for getopts
@@ -474,7 +476,7 @@ main() {
 
 	local func_name="target_${target//-/_}"
 	#shellcheck disable=SC2016,2086
-	declare -f "$func_name" > /dev/null || _re 'Unknown target: $target. Run '$0 --helpyy' for available targets.'
+	declare -f "$func_name" > /dev/null || _re 'Unknown target: $target. Run '$0 --help' for available targets.'
 
 	case "$target" in
 		build|serve)
@@ -486,5 +488,5 @@ main() {
 	esac
 }
 
-# Run main with all arguments
 main "$@"
+
