@@ -22,19 +22,33 @@ fi
 # Validate LIST
 [ ${#LIST[@]} -eq 0 ] && _re 'LIST is empty — define it in .env'
 
+_remove_deprecated() {
+	local d
+	d="$1"
+	for f in "$d/create" "$d/create-web" "$d/docs/goatcounter.html" "$d/src/goatcounter.html"; do
+		rm -f "$f" && _b "Deprecated $f removed!"
+	done
+}
+
 _copy() {
 	for d in "${LIST[@]}"; do
+		name=$(basename "$d")
+		_g "Updating $name website"
 		mkdir -p "$d/src"
 		if [ "$d" = "$DIR/dh" ]; then
+			_remove_deprecated "$d"
+			cp -v lib.sh "$d/"
 			cp -v web-create "$d/"
+			cp -v web-deploy "$d/"
 			cp -rv .github "$d/"
 			for f in src/*; do
 				if [ ! "$f" = "src/favicon.ico" ]; then
-					cp -v "$f" "$d/src/"
+					cp "$f" "$d/src/"
 				fi
 			done
 		else
-			cp -rv .github web-create src "$d/"
+			cp -rv .github lib.sh web-create web-deploy src "$d/"
+			#chmod a+x "$d/web-create" "$d/web-deploy"
 		fi
 	done
 }
