@@ -74,10 +74,10 @@ _copy() {
 		mkdir -p "$d/src"
 
 		# Copy src/* but never overwrite src/.env
-			for f in src/*; do
+		for f in src/*; do
 			[ "$f" = "src/.env" ] && continue
-					cp -v "$f" "$d/src/"
-			done
+			cp -v "$f" "$d/src/"
+		done
 
 		cp -v lib.sh web-create web-deploy "$d/"
 		cp -rv .github "$d/"
