@@ -205,12 +205,12 @@ _build_nav() {
 	for md in *.md; do
 		[ -f "$md" ] || continue
 		[ "$md" = "README.md" ] && continue
-		local name
-		name="${md%.md}"
-		name="${name//_/ }"
-		local active=""
-		[ "$name" = "$current" ] && active=' class="active"'
-		echo "  <li><a href=\"${name}.html\"${active}>${name}</a></li>" >> "$nav_file"
+		local slug label active
+		slug="${md%.md}"
+		label="${slug//_/ }"
+		active=""
+		[ "$slug" = "$current" ] && active=' class="active"'
+		echo "  <li><a href=\"${slug}.html\"${active}>${label}</a></li>" >> "$nav_file"
 	done
 
 	echo '</ul></nav>' >> "$nav_file"
