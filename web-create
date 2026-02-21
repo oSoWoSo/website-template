@@ -185,6 +185,7 @@ _build_nav() {
 
 	echo '<nav><ul>' > "$nav_file"
 	echo '  <li><a href="https://osowoso.org">oSoWoSo</a></li>' >> "$nav_file"
+	echo "  <li>⏮️</a></li>" >> "$nav_file"
 
 	local home_active=""
 	[ "$current" = "index" ] && home_active=' class="active"'
