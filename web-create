@@ -21,15 +21,15 @@ check_variables() {
 }
 if [ -f ".env" ]; then
     source ".env"
-    check_variables && _g 'Using .env'
+    check_variables && echo 'Using .env'
 
 elif [ -f "src/.env" ]; then
     source "src/.env"
-    check_variables && _g 'Using src/.env'
+    check_variables && echo 'Using src/.env'
 
 elif [ -f "${SCRIPT_DIR}/.env" ]; then
     source "${SCRIPT_DIR}/.env"
-    check_variables && _g 'Using .env'
+    check_variables && echo 'Using .env'
 fi
 
 # ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ _detect_repo() {
 		REPO_URL="$https_url"
 		REPO_ZIP_URL="${https_url}/archive/main.zip"
 		REPO_RELEASE_URL="${https_url}/releases/latest"
-		_g "Codeberg/Forgejo detected: $REPO_URL"
+		echo "Codeberg/Forgejo detected: $REPO_URL"
 		_check_release
 		return
 
@@ -102,7 +102,7 @@ _detect_repo() {
 			_b "FORGE_URL override: $forge_base"
 			REPO_PLATFORM="gitea"
 		elif _is_gitea "$base_url"; then
-			_g "Gitea/Forgejo detected at: $base_url"
+			echo "Gitea/Forgejo detected at: $base_url"
 			forge_base="$base_url"
 			REPO_PLATFORM="gitea"
 		else
@@ -120,7 +120,7 @@ _detect_repo() {
 		REPO_RELEASE_URL="${https_url}/releases/latest"
 	fi
 
-	_g "Repo detected [$REPO_PLATFORM]: $REPO_URL"
+	echo "Repo detected [$REPO_PLATFORM]: $REPO_URL"
 	_check_release
 }
 
@@ -157,7 +157,7 @@ _check_release() {
 	esac
 
 	if [ "$REPO_HAS_RELEASE" = "1" ]; then
-		_g "Release found"
+		echo "Release found"
 	else
 		_y "No release found — release button will be shown as strikethrough"
 	fi
@@ -307,11 +307,11 @@ target_build() { ## Builds the website
 
 	local extra_after=()
 	if [ -n "$goatcounter_url" ]; then
-		_g "GoatCounter: $goatcounter_url"
+		echo "GoatCounter: $goatcounter_url"
 		extra_after+=("--include-after-body=$(_build_goatcounter_snippet "$goatcounter_url")")
 	fi
 	if [ -n "$giscus_repo" ]; then
-		_g "Giscus: $giscus_repo"
+		echo "Giscus:      $giscus_repo"
 		extra_after+=("--include-after-body=$(_build_giscus_snippet \
 			"$giscus_repo" "$giscus_repo_id" "$giscus_category" "$giscus_category_id")")
 	fi
@@ -321,7 +321,7 @@ target_build() { ## Builds the website
 			[ -f "$file" ] || continue
 			local nav_file="docs/_nav.html"
 			_build_nav "index" "$nav_file"
-			echo "Processing: $file → index.html"
+			echo "Processing:  $file → index.html"
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
