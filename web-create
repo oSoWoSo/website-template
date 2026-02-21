@@ -8,18 +8,28 @@
 # License: MIT
 #
 
-# Source shared functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Source shared functions
 # shellcheck source=lib.sh
 source "${SCRIPT_DIR}/lib.sh"
 
-# Load .env — project dir takes priority, fallback to script dir
+# Load .env — project dir takes priority
+check_variables() {
+    if [ -z "$TITLE" ]; then
+        return 1
+    fi
+}
 if [ -f ".env" ]; then
-	source ".env"
-	_g 'Using .env'
+    source ".env"
+    check_variables && _g 'Using .env'
+
+elif [ -f "src/.env" ]; then
+    source "src/.env"
+    check_variables && _g 'Using src/.env'
+
 elif [ -f "${SCRIPT_DIR}/.env" ]; then
-	source "${SCRIPT_DIR}/.env"
-	_g 'Using .env'
+    source "${SCRIPT_DIR}/.env"
+    check_variables && _g 'Using .env'
 fi
 
 # ---------------------------------------------------------------------------
