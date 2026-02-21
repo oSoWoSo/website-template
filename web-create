@@ -326,7 +326,7 @@ target_build() { ## Builds the website
 			[ -f "$file" ] || continue
 			local nav_file="docs/_nav.html"
 			_build_nav "index" "$nav_file"
-			printf "%-12s %s\n" "processing:" "$file → index.html"
+			printf "${YELLOW}%-12s${NC} %s\n" "processing:" "$file → index.html"
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
@@ -360,7 +360,7 @@ target_build() { ## Builds the website
 			local nav_file="docs/_nav_${current}.html"
 			_build_nav "$current" "$nav_file"
 
-			printf "%-12s %s\n" "processing:" "$file → $output"
+			printf "${YELLOW}%-12s${NC} %s\n" "processing:" "$file → $output"
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
