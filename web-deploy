@@ -52,7 +52,7 @@ _list_names() {
 _remove_deprecated() {
 	local d
 	d="$1"
-	for f in "$d/create" "$d/create-web" "$d/docs/goatcounter.html" "$d/src/goatcounter.html"; do
+	for f in $d/create $d/create-web $d/docs/goatcounter.html $d/src/goatcounter.html $d/src/_config.yml $d/docs/_config.yml; do
 		rm -f "$f" && _b "Deprecated $f removed!"
 	done
 }
@@ -78,6 +78,7 @@ _copy() {
 
 		cp -v lib.sh web-create web-deploy "$d/"
 		cp -rv .github "$d/"
+		_remove_deprecated "$d"
 	done
 }
 
