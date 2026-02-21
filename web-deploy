@@ -53,7 +53,7 @@ _remove_deprecated() {
 	local d
 	d="$1"
 	for f in $d/create $d/create-web $d/docs/goatcounter.html $d/src/goatcounter.html $d/src/_config.yml $d/docs/_config.yml; do
-		rm -f "$f" && _b "Deprecated $f removed!"
+		[ rm "$f" 2>/dev/null ] && _b "Deprecated $f removed!"
 	done
 }
 
