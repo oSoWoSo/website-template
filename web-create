@@ -93,7 +93,7 @@ _detect_repo() {
 		REPO_URL="$https_url"
 		REPO_ZIP_URL="${https_url}/archive/main.zip"
 		REPO_RELEASE_URL="${https_url}/releases/latest"
-		echo "Codeberg/Forgejo detected: $REPO_URL"
+		printf "%-12s %s\n" "Forgejo:" "$REPO_URL"
 		_check_release
 		return
 
@@ -104,7 +104,7 @@ _detect_repo() {
 			_b "FORGE_URL override: $forge_base"
 			REPO_PLATFORM="gitea"
 		elif _is_gitea "$base_url"; then
-			echo "Gitea/Forgejo detected at: $base_url"
+			printf "%-12s %s\n" "Gitea:" "$base_url"
 			forge_base="$base_url"
 			REPO_PLATFORM="gitea"
 		else
@@ -162,11 +162,9 @@ _check_release() {
 	esac
 
 	if [ "$REPO_HAS_RELEASE" = "1" ]; then
-		#echo "Release: found"
 		printf "%-12s %s\n" "Release:" found
 	else
-		#_y "No release found — release button will be shown as strikethrough"
-		printf "%-12s %s\n" "Release:" "${RED}No${NC}"
+		printf "%-12s ${RED}%s${NC}\n" "Release:" "No"
 	fi
 }
 
@@ -328,7 +326,7 @@ target_build() { ## Builds the website
 			[ -f "$file" ] || continue
 			local nav_file="docs/_nav.html"
 			_build_nav "index" "$nav_file"
-			echo "Processing:  $file → index.html"
+			printf "%-12s %s\n" "processing:" "$file → index.html"
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
@@ -362,7 +360,7 @@ target_build() { ## Builds the website
 			local nav_file="docs/_nav_${current}.html"
 			_build_nav "$current" "$nav_file"
 
-			echo "Processing: $file → $output"
+			printf "%-12s %s\n" "processing:" "$file → $output"
 			pandoc "$file" -f gfm -s \
 				--css=style.css \
 				--toc \
