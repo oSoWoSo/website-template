@@ -198,6 +198,10 @@ msgEnv="Create src/.env in:
 $(_list_names | sed 's/^/  /')
 Continue?"
 
+msgBuild="Build all repos in:
+$(_list_names | sed 's/^/  /')
+Continue?"
+
 case "$ACTION" in
 	"Copy template to repos")
 		_confirm "$msgCopy" && _copy
@@ -206,7 +210,7 @@ case "$ACTION" in
 		_confirm "$msgEnv" && _create_env
 		;;
 	"Build all repos")
-		_confirm "Build all repos in LIST?" && _build_repos
+		_confirm "$msgBuild" && _build_repos
 		;;
 	"Push template (origin)")
 		_confirm "Push template to origin?" && _push_template
