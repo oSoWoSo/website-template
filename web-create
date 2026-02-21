@@ -386,7 +386,9 @@ target_name() { ## Description here'
 
 # Target: help
 target_help() { ## Show this help message
-	_b 'OSOWOSO Website Build System'
+	_b "Website Build System
+              v$version
+          by oSoWoSo"
 	echo -e "\nUsage: $0 [target] [arguments]\n\nAvailable targets:\n"
 	awk 'BEGIN {FS = "## "} /^target_[a-zA-Z_-]+\(\).*## / {
 		sub(/target_/, "", $1)

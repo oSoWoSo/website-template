@@ -182,6 +182,10 @@ _release_template() {
 # Menu
 # ---------------------------------------------------------------------------
 
+	_b "Website Deploy System
+               v$version
+           by oSoWoSo"
+
 ACTION=$(_choose \
 	"Copy template to repos" \
 	"Create src/.env in repos" \
