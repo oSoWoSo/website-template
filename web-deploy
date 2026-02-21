@@ -131,7 +131,8 @@ _build_repos() {
 	for entry in "${LIST[@]}"; do
 		local d
 		d=$(_parse_list_entry "$entry" 1)
-		[ -f "$d/create-web" ] || { _y "Skipping (no create-web): $d"; continue; }
+		echo "$d"
+		[ -f "$d/web-create" ] || { _y "Skipping (no web-create): $d"; continue; }
 		_g "Building: $d"
 		(cd "$d" && ./web-create -b) || _y "Build failed: $d"
 	done
