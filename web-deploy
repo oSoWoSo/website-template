@@ -121,8 +121,8 @@ GISCUS_REPO_ID='${giscus_repo_id}'
 GISCUS_CATEGORY='${giscus_category}'
 GISCUS_CATEGORY_ID='${giscus_category_id}'
 
-FORGE_URL='${FORGE_URL:-}'
 EOF
+		[ -n "$FORGE_URL" ] && echo "FORGE_URL=\"${FORGE_URL}\"" >> "$d/src/.env"
 		_g "Created: $d/src/.env"
 	done
 }
