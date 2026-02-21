@@ -8,7 +8,7 @@
 # License: MIT
 #
 
-version='0.0.3'
+BUILD_VERSION='0.0.3'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source shared functions
@@ -390,7 +390,7 @@ target_name() { ## Description here'
 # Target: help
 target_help() { ## Show this help message
 	_b "Website Build System
-              v$version
+              v$BUILD_VERSION
           by oSoWoSo"
 	echo -e "\nUsage: $0 [target] [arguments]\n\nAvailable targets:\n"
 	awk 'BEGIN {FS = "## "} /^target_[a-zA-Z_-]+\(\).*## / {

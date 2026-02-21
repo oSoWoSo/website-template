@@ -6,7 +6,7 @@
 # License: MIT
 #
 
-version='0.0.3'
+DEPLOY_VERSION='0.0.3'
 
 # Source shared functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -184,7 +184,7 @@ _release_template() {
 # ---------------------------------------------------------------------------
 
 	_b "Website Deploy System
-               v$version
+               v$DEPLOY_VERSION
            by oSoWoSo"
 
 ACTION=$(_choose \
