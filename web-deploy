@@ -14,6 +14,7 @@ source "${SCRIPT_DIR}/lib.sh"
 # Load .env
 if [ -f "${SCRIPT_DIR}/.env" ]; then
 	source "${SCRIPT_DIR}/.env"
+	export GITHUB_TOKEN
 	_g 'Using .env'
 else
 	_re '.env not found! Create it from src/.env'
@@ -131,10 +132,9 @@ _build_repos() {
 	for entry in "${LIST[@]}"; do
 		local d
 		d=$(_parse_list_entry "$entry" 1)
-		echo "$d"
 		[ -f "$d/web-create" ] || { _y "Skipping (no web-create): $d"; continue; }
 		_g "Building: $d"
-		(cd "$d" && ./web-create -b) || _y "Build failed: $d"
+		(cd "$d" && GITHUB_TOKEN="$GITHUB_TOKEN" ./web-create -b) || _y "Build failed: $d"
 	done
 }
 
